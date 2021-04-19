@@ -7,7 +7,7 @@ import re
 parser = argparse.ArgumentParser(description='Compiles multiple XS sources into one.')
 parser.add_argument('src_path', type=str, help='path to the map file (or folder of .xs files) with dependencies')
 parser.add_argument('--deps_path', '-d', type=str, nargs='?', default='',
-                    help='the path of the dependencies (defaults to src_path)')
+                    help='the path of the dependencies (defaults to cwd)')
 parser.add_argument('--out_path', '-o', type=str, nargs='?', default='out',
                     help='folder to place the compiled files in (defaults to out/')
 
