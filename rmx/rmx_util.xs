@@ -1,7 +1,7 @@
 /*
 ** Conversions, scaling, randomization, constraints, player placement, and core areas.
 ** RebelsRising
-** Last edit: 16/04/2021
+** Last edit: 16/10/2021
 */
 
 include "rmx_core.xs";
@@ -254,6 +254,15 @@ bool isXLargerZ() {
 	return(xMeters > zMeters);
 }
 
+/**
+** Returns the area of the map in meters.
+**
+** @returns: the area of the map in meters
+*/
+float getMapAreaInMeters() {
+	return(getFullXMeters() * getFullZMeters());
+}
+
 /*
 ** Adjusts a single coordinate to fit within the map in [0, 1.0].
 **
@@ -302,6 +311,18 @@ float squaredToCircularRadius(float r = 0.0) {
 */
 float areaRadiusMetersToFraction(float r = 0.0) {
 	return(sq(r) * PI / (getFullXMeters() * getFullZMeters()));
+}
+
+/*
+** Calculates the radius of a fraction for a circular area.
+** Can be used to determine the radius of an area when providing a fraction for rmSetAreaSize().
+**
+** @param frac: the fraction
+**
+** @returns: the radius of an area with the same area as an area with the given fraction in meters
+*/
+float fractionToAreaRadiusMeters(float frac = 0.0) {
+	return(sqrt((frac * (getFullXMeters() * getFullZMeters())) / PI));
 }
 
 /*

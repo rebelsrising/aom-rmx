@@ -1,7 +1,7 @@
 /*
 ** RM X Framework
 ** RebelsRising
-** Last edit: 28/04/2021
+** Last edit: 24/09/2021
 **
 ** The purpose of the RM X framework is to serve as the ultimate random map scripting library for competitive Age of Mythology maps.
 **
@@ -284,8 +284,7 @@ bool hasAddObs() {
 /*
 ** Enables observer mode for the last team if supported by the platform. Requires at least 3 teams.
 */
-void enableAddObs(bool force = false) {
-	// Only allow obs if it's actually possible to turn it on.
+void enableAddObs() {
 	if(cNumberTeams > 2) {
 		addObs = true;
 	}

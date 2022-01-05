@@ -1,7 +1,7 @@
 /*
 ** Location storage data structure.
 ** RebelsRising
-** Last edit: 07/03/2021
+** Last edit: 12/05/2021
 */
 
 include "rmx_util.xs";
@@ -621,8 +621,8 @@ void placeLocationsInCircle(int n = 1, float radius = 0.0, float angle = 0.0, fl
 	}
 
 	for(i = 1; <= n) {
-		float x = getXFromPolar(radius, a, 0.0) + offsetX;
-		float z = getZFromPolar(radius, a, 0.0) + offsetZ;
+		float x = getXFromPolar(radius, a, 0.0) * getDimFacX() + offsetX;
+		float z = getZFromPolar(radius, a, 0.0) * getDimFacZ() + offsetZ;
 
 		// Don't fit to map if location invalid.
 		forceAddLocToStorage(x, z);
