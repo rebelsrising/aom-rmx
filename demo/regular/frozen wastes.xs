@@ -4,7 +4,7 @@
 ** Last edit: 26/03/2021
 */
 
-include "rmx 5-0-0.xs";
+include "rmx.xs";
 
 // Override backward town center angles because we can't place backwards.
 
@@ -57,7 +57,7 @@ void main() {
 	rmSetLightingSet("Alfheim");
 
 	// Player placement.
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		if(randChance()) {
 			placePlayersInLine(0.25, 0.25, 0.75, 0.75);
 		} else {
@@ -202,7 +202,7 @@ void main() {
 	rmAddObjectDefConstraint(farBerriesID, avoidFood);
 
 	// Medium herdables (only verify for 1v1 because there are so many).
-	int mediumHerdablesID = createObjectDefVerify("medium herdables", cNonGaiaPlayers < 3);
+	int mediumHerdablesID = createObjectDefVerify("medium herdables", gameIs1v1());
 	addObjectDefItemVerify(mediumHerdablesID, "Goat", 2, 4.0);
 	setObjectDefDistance(mediumHerdablesID, 50.0, 135.0);
 	rmAddObjectDefConstraint(mediumHerdablesID, avoidAll);
@@ -313,7 +313,7 @@ void main() {
 	// Starting gold.
 	int numStartingGold = rmRandInt(1, 2);
 
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		numStartingGold = 1;
 	}
 
@@ -329,7 +329,7 @@ void main() {
 	placeAndStoreObjectAtPlayerLocs(startingGoldID, true, 1, 22.0, 25.0, true);
 
 	// Place second one for 1v1 if randomized.
-	if(numStartingGold == 2 && cNonGaiaPlayers < 3) {
+	if(numStartingGold == 2 && gameIs1v1()) {
 		setPlaceObjectAngleRange(-0.55, 0.55);
 		placeObjectDefPerPlayer(startingGoldID, false, 1, 22.0, 25.0, true);
 	}
@@ -350,21 +350,21 @@ void main() {
 	rmAddObjectDefItem(settlementID, "Settlement", 1, 0.0);
 
 	// Bonus settlement for teamgames.
-	// if(cNonGaiaPlayers > 2) {
+	// if(gameIs1v1() == false) {
 		// placeObjectDefAtLoc(settlementID, 0, 0.5, 0.5);
 	// }
 
 	// Close settlement.
 	enableFairLocTwoPlayerCheck();
 
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		addFairLocConstraint(avoidTowerLOS);
 	}
 
 	addFairLocConstraint(forceOnContinent);
 	addFairLocConstraint(createEdgeDistConstraint(continentID, 30.0));
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		addFairLoc(60.0, 65.0, false, true, 70.0, 0.0, 0.0, true);
 	} else if(cNonGaiaPlayers < 5 ) {
 		addFairLocConstraint(createEdgeDistConstraint(continentID, 40.0));
@@ -382,7 +382,7 @@ void main() {
 	enableFairLocTwoPlayerCheck();
 
 	// For anything but 1v1, the forward/backward variation has no impact because the map is so small.
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		addFairLoc(80.0, 120.0, true, false, 70.0);
 	} else if(cNonGaiaPlayers < 5) {
 		addFairLoc(70.0, 85.0, true, randChance(), 70.0, 0.0, 0.0, false, gameHasTwoEqualTeams());
@@ -415,7 +415,7 @@ void main() {
 	progress(0.5);
 
 	// Gold.
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		// 1v1.
 		// First (medium).
 		int mediumGoldID = createObjectDefVerify("medium gold");
@@ -550,11 +550,11 @@ void main() {
 	// Bonus walrus (only verify for 1v1, plenty of objects anyway in teamgames).
 	int numBonusWalrus = 1;
 
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		numBonusWalrus = 2;
 	}
 
-	int bonusHuntID = createObjectDefVerify("bonus hunt", cNonGaiaPlayers < 3 || cDebugMode >= cDebugFull);
+	int bonusHuntID = createObjectDefVerify("bonus hunt", gameIs1v1() || cDebugMode >= cDebugFull);
 	addObjectDefItemVerify(bonusHuntID, "Walrus", rmRandInt(3, 4), 2.0);
 	rmAddObjectDefConstraint(bonusHuntID, avoidAll);
 	rmAddObjectDefConstraint(bonusHuntID, createClassDistConstraint(classStartingSettlement, 65.0));
@@ -568,7 +568,7 @@ void main() {
 	// Medium hunt.
 	int numMediumHunt = rmRandInt(1, 2);
 
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		numMediumHunt = 1;
 	}
 
@@ -676,7 +676,7 @@ void main() {
 	progress(0.8);
 
 	// Predators.
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		placeObjectInPlayerSplits(farPredatorsID, false, 2);
 	} else {
 		placeObjectInPlayerSplits(farPredatorsID, false, 1);
@@ -741,7 +741,7 @@ void main() {
 		addProtoPlacementCheck("Tower", 4, i);
 	}
 	addProtoPlacementCheck("Gold Mine Small", numStartingGold * cNonGaiaPlayers, 0);
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		addProtoPlacementCheck("Settlement", 2 * cNonGaiaPlayers, 0);
 	} else {
 		// Adjust this if we place an additional settlement in the center.

@@ -4,7 +4,7 @@
 ** Last edit: 26/03/2021
 */
 
-include "rmx 5-0-0.xs";
+include "rmx.xs";
 
 void main() {
 	progress(0.0);
@@ -19,7 +19,7 @@ void main() {
 	initializeMap("SandD", axisLength);
 
 	// Player placement.
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		if(randChance()) {
 			placePlayersInLine(0.2, 0.2, 0.8, 0.8);
 		} else {
@@ -147,7 +147,7 @@ void main() {
 	rmAddObjectDefConstraint(farMonkeysID, avoidEdge);
 	rmAddObjectDefConstraint(farMonkeysID, mediumAvoidImpassableLand);
 	rmAddObjectDefConstraint(farMonkeysID, createClassDistConstraint(classStartingSettlement, 70.0));
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		rmAddObjectDefConstraint(farMonkeysID, shortAvoidSettlement);
 	}
 	rmAddObjectDefConstraint(farMonkeysID, shortAvoidGold);
@@ -321,7 +321,7 @@ void main() {
 
 	enableFairLocTwoPlayerCheck();
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		addFairLoc(60.0, 80.0, false, true, 60.0, 12.0, 12.0);
 	} else {
 		addFairLocConstraint(createClassDistConstraint(classStartingSettlement, 60.0));
@@ -333,7 +333,7 @@ void main() {
 	addFairLocConstraint(shortAvoidForest);
 	addFairLocConstraint(farAvoidImpassableLand);
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		enableFairLocTwoPlayerCheck();
 		setFairLocInterDistMin(80.0);
 
@@ -371,7 +371,7 @@ void main() {
 	// Medium gold.
 	int numMediumGold = rmRandInt(1, 2);
 
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		numMediumGold = 1;
 	}
 
@@ -380,7 +380,7 @@ void main() {
 	setObjectDefDistance(mediumGoldID, 50.0, 30.0 + 30.0 * numMediumGold);
 	rmAddObjectDefConstraint(mediumGoldID, avoidAll);
 	rmAddObjectDefConstraint(mediumGoldID, avoidEdge);
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		rmAddObjectDefConstraint(mediumGoldID, avoidCorner);
 	}
 	rmAddObjectDefConstraint(mediumGoldID, avoidTowerLOS);
@@ -391,7 +391,7 @@ void main() {
 
 	placeObjectAtPlayerLocs(mediumGoldID, false, numMediumGold);
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		// Bonus gold.
 		int numBonusGold = 2;
 
@@ -399,7 +399,7 @@ void main() {
 		addObjectDefItemVerify(bonusGoldID, "Gold Mine", 1, 0.0);
 		rmAddObjectDefConstraint(bonusGoldID, avoidAll);
 		rmAddObjectDefConstraint(bonusGoldID, avoidEdge);
-		if(cNonGaiaPlayers < 3) {
+		if(gameIs1v1()) {
 			rmAddObjectDefConstraint(bonusGoldID, avoidCorner);
 			rmAddObjectDefConstraint(bonusGoldID, createClassDistConstraint(classCenterline, 10.0));
 		}
@@ -586,7 +586,7 @@ void main() {
 	int playerFishLandMin = createTerrainDistConstraint("Land", true, 10.0);
 	int playerFishLandMax = createTerrainMaxDistConstraint("Land", true, 16.0);
 
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		playerFishLandMin = createTerrainDistConstraint("Land", true, 12.0);
 	}
 
@@ -619,7 +619,7 @@ void main() {
 
 	int avoidPlayerFish = createTypeDistConstraint("Fish", 12.0);
 
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		avoidPlayerFish = createTypeDistConstraint("Fish", 16.0);
 	}
 
@@ -635,7 +635,7 @@ void main() {
 		setObjectDefDistanceToMax(centerFishID);
 		rmAddObjectDefConstraint(centerFishID, playerFishLandMin);
 		rmAddObjectDefConstraint(centerFishID, avoidPlayerFish);
-		if(cNonGaiaPlayers < 3) {
+		if(gameIs1v1()) {
 			rmAddObjectDefConstraint(centerFishID, avoidCenterline);
 		}
 		rmAddObjectDefConstraint(centerFishID, createAreaConstraint(rmAreaID(cTeamSplitName + " " + rmGetPlayerTeam(getPlayer(p)))));
@@ -643,7 +643,7 @@ void main() {
 	}
 
 	// Bonus fish.
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		int bonusFishSize = rmRandInt(1, 2);
 
 		int bonusFishID = rmCreateObjectDef("bonus fish");

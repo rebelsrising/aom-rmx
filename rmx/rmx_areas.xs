@@ -1,7 +1,7 @@
 /*
 ** Default mirrored area generation.
 ** RebelsRising
-** Last edit: 07/03/2021
+** Last edit: 20/03/2022
 */
 
 include "rmx_shape_gen.xs";
@@ -83,6 +83,9 @@ float areaMaxCoherence = 1.0;
 
 float areaMinRadius = 20.0;
 float areaMaxRadius = -1.0;
+
+float areaMinAngle = NPI;
+float areaMaxAngle = PI;
 
 // Constraint for self avoidance.
 int areaAvoidSelfID = -1;
@@ -221,6 +224,17 @@ void setAreaSearchRadius(float minRadius = 20.0, float maxRadius = -1.0) {
 }
 
 /*
+** Sets a minimum and maximum angle in radians to consider when placing areas.
+**
+** @param minRadius: minimum angle in radians to randomize
+** @param maxRadius: maximum angle in radians to randomize
+*/
+void setAreaSearchAngle(float minAngle = NPI, float maxAngle = PI) {
+	areaMinAngle = minAngle;
+	areaMaxAngle = maxAngle;
+}
+
+/*
 ** Resets area settings (types, constraints, and search radius).
 */
 void resetAreas() {
@@ -236,6 +250,7 @@ void resetAreas() {
 	setAreaParams();
 	setAreaCoherence();
 	setAreaSearchRadius();
+	setAreaSearchAngle();
 	setAreaAvoidSelf();
 	setAreaEnforceConstraints();
 	setAreaRequiredRatio();
@@ -264,7 +279,7 @@ int initAreaClass(int clazz = -1) {
 }
 
 /*
-** Randomizes a radius while considering a areaMaxRadius of -1.0.
+** Randomizes a radius while considering an areaMaxRadius of -1.0.
 **
 ** @returns: the randomized area radius in meters
 */
@@ -278,7 +293,16 @@ float getAreaLocRadius() {
 }
 
 /*
-** Checks if the location for a area is valid.
+** Randomizes an angle from the specified range.
+**
+** @returns: the randomized area angle
+*/
+float getAreaLocAngle() {
+	return(rmRandFloat(areaMinAngle, areaMaxAngle));
+}
+
+/*
+** Checks if the location for an area is valid.
 **
 ** @param radius: the radius in meters
 ** @param angle: the angle in the polar coordinate system
@@ -350,7 +374,7 @@ void createAreaBlobAreas(int numBlobs = 0, string areaID = "", bool paintTerrain
 }
 
 /*
-** Attempts to randomly place and build a area from a previously built random shape.
+** Attempts to randomly place and build an area from a previously built random shape.
 **
 ** @param numBlobs: the number of blobs to create
 ** @param player: if set to > 0, the player's location will be used as offset instead of the center of the map (0.5/0.5)
@@ -366,13 +390,13 @@ bool buildAreaShape(int numBlobs = 0, int player = 0) {
 
 	// Randomize angle and radius.
 	float radius = getAreaLocRadius();
-	float angle = randRadian();
+	float angle = getAreaLocAngle();
 
 	int numTries = 0;
 
 	while(isAreaLocValid(radius, angle, player) == false && numTries < 100) {
 		radius = getAreaLocRadius();
-		angle = randRadian();
+		angle = getAreaLocAngle();
 		numTries++;
 	}
 
@@ -433,7 +457,7 @@ int buildAreas(int numAreas = 0, float prog = 0.0, int player = 0, int numTries 
 
 	// Prepare first iteration.
 	int numBlobs = rmRandInt(areaMinBlobs, areaMaxBlobs);
-	float coherence = rmRandInt(areaMinCoherence, areaMaxCoherence);
+	float coherence = rmRandFloat(areaMinCoherence, areaMaxCoherence);
 
 	// Build a random shape.
 	createRandomShape(numBlobs, coherence);
@@ -452,7 +476,7 @@ int buildAreas(int numAreas = 0, float prog = 0.0, int player = 0, int numTries 
 
 		// Prepare for next iteration.
 		numBlobs = rmRandInt(areaMinBlobs, areaMaxBlobs);
-		coherence = rmRandInt(areaMinCoherence, areaMaxCoherence);
+		coherence = rmRandFloat(areaMinCoherence, areaMaxCoherence);
 
 		createRandomShape(numBlobs, coherence);
 	}
@@ -464,7 +488,7 @@ int buildAreas(int numAreas = 0, float prog = 0.0, int player = 0, int numTries 
 ** Attempts to build a given number of mirrored areas around every player according to the previously specified parameters.
 ** The function iterates over the number of players in the team and places an area for every player and their mirrored counterpart.
 **
-** If it should ever be necessary to verify how many areas very successfully built and for which pair of players, make a custom version of this function
+** If it should ever be necessary to verify how many areas were successfully built and for which pair of players, make a custom version of this function
 ** along with a data structure to store the return result of buildAreas().
 **
 ** @param numAreas: the number of areas to build

@@ -488,7 +488,7 @@ void main() {
 	addFairLocConstraint(farAvoidOasis);
 		addFairLocConstraint(avoidTowerLOS);
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		addFairLocConstraint(avoidCorner);
 	}
 
@@ -502,7 +502,7 @@ void main() {
 
 	enableFairLocTwoPlayerCheck();
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		addFairLoc(85.0, 110.0, true, false, 80.0, 12.0, 12.0);
 	} else if(cNonGaiaPlayers < 5) {
 		addFairLoc(77.5, 100.0, true, false, 70.0, 12.0, 12.0, false, gameHasTwoEqualTeams());
@@ -560,7 +560,7 @@ void main() {
 	addObjectDefItemVerify(mediumGoldID, "Gold Mine", 1, 0.0);
 
 	// First (medium).
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		addSimLocConstraint(avoidCorner);
 	}
 	addSimLocConstraint(avoidAll);
@@ -581,7 +581,7 @@ void main() {
 	int numBonusGold = 3;
 
 	// Far gold for 1v1.
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		int farGoldID = createObjectDefVerify("far gold");
 		addObjectDefItemVerify(farGoldID, "Gold Mine", 1, 0.0);
 		// Place 1 "fair" far mine in 1v1, randomize the other 2.
@@ -604,11 +604,11 @@ void main() {
 	}
 
 	// Regular bonus gold (only verify for 1v1 because there is a lot of gold in teamgames).
-	int bonusGoldID = createObjectDefVerify("bonus gold", cNonGaiaPlayers < 3 || cDebugMode >= cDebugFull);
+	int bonusGoldID = createObjectDefVerify("bonus gold", gameIs1v1() || cDebugMode >= cDebugFull);
 	addObjectDefItemVerify(bonusGoldID, "Gold Mine", 1, 0.0);
 	rmAddObjectDefConstraint(bonusGoldID, avoidAll);
 	rmAddObjectDefConstraint(bonusGoldID, avoidEdge);
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		rmAddObjectDefConstraint(bonusGoldID, createClassDistConstraint(classStartingSettlement, 80.0));
 		rmAddObjectDefConstraint(bonusGoldID, avoidCorner);
 	} else {
@@ -688,7 +688,7 @@ void main() {
 	float farHuntMinDist = rmRandFloat(65.0, 95.0);
 	float farHuntMaxDist = farHuntMinDist + 5.0;
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		farHuntMinDist = 65.0;
 		farHuntMaxDist = 100.0;
 	}

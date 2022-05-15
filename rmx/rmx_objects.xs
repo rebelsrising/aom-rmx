@@ -1,7 +1,7 @@
 /*
 ** Object storage arrays and object placement.
 ** RebelsRising
-** Last edit: 07/03/2021
+** Last edit: 20/03/2022
 */
 
 include "rmx_cliffs.xs";
@@ -263,30 +263,35 @@ bool placeObjectForPlayer(int objectID = -1, int player = 0, float x = -1.0, flo
 }
 
 /*
-** Enforces placement for an object for a player by steadily increasing MaxDistance of the object until placement succeeded.
+** Enforces placement for an object for a player by steadily increasing MaxDistance of the object until placement succeeded
+** or the length of the map diagonal has been reached.
 **
 ** @param objectID: the ID of the object to be placed
 ** @param player: the player (already mapped) owning the object (0 = Mother Nature)
 ** @param x: x coordinate of the location
 ** @param z: z coordinate of the location
+**
+** @returns: the radius used for the forced placement (-1.0 means the placement failed)
 */
-void forcePlaceObjectForPlayer(int objectID = -1, int player = 0, float x = -1.0, float z = -1.0) {
+float forcePlaceObjectForPlayer(int objectID = -1, int player = 0, float x = -1.0, float z = -1.0) {
 	// Calculate diagonal.
 	int numForceTries = 100;
-	float diag = sqrt(sq(getFullXMeters()) + sq(getFullZMeters()));
-	float range = 1.0;
+	float diag = getMapDiagonalInMeters();
+	float range = 0.0;
 
 	for(i = 1; < numForceTries) {
 		// Increase maximum distance allowed to be placed from original location, try to place, increment.
 		rmSetObjectDefMaxDistance(objectID, range);
 
-		if(placeObjectForPlayer(objectID, player, x, z, true) || range > diag) {
+		if(placeObjectForPlayer(objectID, player, x, z, true)) {
 			// Reset max distance if placed successfully (in case we place same object again) and return.
 			rmSetObjectDefMaxDistance(objectID, 0.0);
-			return;
+			return(range);
+		} else if(range > diag) {
+			return(-1.0);
 		}
 
-		range = 2.0 * range;
+		range = range + 1.0; // Increase allowed distance from designated location by 1 meter.
 	}
 }
 
@@ -381,7 +386,7 @@ float getFarAngleSegment(int player = 0) {
 ** @returns: true if placement succeeded, false otherwise
 */
 bool placeObjectForMirroredPlayersAtAngle(int player = 0, int objectID = -1, float radius = 0.0, float angle = 0.0, bool playerOwned = false, bool square = false, int altObjID = -1) {
-	float owner = 0; // Mother Nature.
+	int owner = 0; // Mother Nature.
 
 	for(i = 0; < 2) {
 		if(playerOwned) { // Set owner to player.
@@ -535,7 +540,7 @@ bool placeObjectMirrored(int objectID = -1, bool playerOwned = false, int num = 
 ** @returns: true if placement succeeded, false otherwise
 */
 bool placeFarObjectForMirroredPlayersAtAngle(int player = 0, int objectID = -1, float radius = 0.0, float angle = 0.0, bool playerOwned = false, int altObjID = -1) {
-	float owner = 0;
+	int owner = 0;
 
 	for(i = 0; < 2) {
 		if(playerOwned) { // Set owner to player.
@@ -598,13 +603,14 @@ bool placeFarObjectForMirroredPlayersAtAngle(int player = 0, int objectID = -1, 
 ** @param objectID: the ID of the object to be placed
 ** @param playerOwned: true means the object is owned by the players, false means it is owned by Mother Nature
 ** @param num: the number of objects to place per player
-** @param minDist: the minimum distance of the objects to be from the center (to avoid very close spawns)
+** @param minDist: the minimum distance of the objects to be from the center (should not be 0 or the objects might get very close)
+** @param maxDist: the maximum distance of the objects to be from the center (defaults to -1.0, i.e., the largest possible radius)
 ** @param altObjID: if set, this object will be used for the mirrored player instead of objectID
 **                  (e.g., without constraints in case it is placed close to the center)
 **
 ** @returns: the number of objects placed successfully placed for both players
 */
-int placeFarObjectForMirroredPlayers(int player = 0, int objectID = -1, bool playerOwned = false, int num = 1, float minDist = 20.0, int altObjID = -1) {
+int placeFarObjectForMirroredPlayers(int player = 0, int objectID = -1, bool playerOwned = false, int num = 1, float minDist = 20.0, float maxDist = -1.0, int altObjID = -1) {
 	int numIter = 500 * num;
 	int placed = 0;
 
@@ -613,8 +619,15 @@ int placeFarObjectForMirroredPlayers(int player = 0, int objectID = -1, bool pla
 	float minAngle = 0.0 - maxAngle;
 
 	for(i = 0; < numIter) {
-		float radius = randRadiusFromCenterToEdge(minDist);
 		float angle = rmRandFloat(minAngle, maxAngle);
+		float radius = 0.0;
+
+		if(maxDist < 0.0) {
+			// Default maxDist, use entire range.
+			radius = randRadiusFromCenterToEdge(minDist);
+		} else {
+			radius = randRadiusFromInterval(minDist, maxDist);
+		}
 
 		if(placeFarObjectForMirroredPlayersAtAngle(player, objectID, radius, angle, playerOwned, altObjID)) {
 			placed++;
@@ -635,14 +648,15 @@ int placeFarObjectForMirroredPlayers(int player = 0, int objectID = -1, bool pla
 ** @param objectID: the ID of the object to be placed
 ** @param playerOwned: true means the object is owned by the players, false means it is owned by Mother Nature
 ** @param num: the number of objects to place per player
-** @param minDist: the minimum distance of the objects to be from the center (to avoid very close spawns)
+** @param minDist: the minimum distance of the objects to be from the center (should not be 0 or the objects might get very close)
+** @param maxDist: the maximum distance of the objects to be from the center (defaults to -1.0, i.e., the largest possible radius)
 ** @param altObjID: if set, this object will be used for the mirrored player instead of objectID
 **                  (e.g., without constraints in case it is placed close to the center)
 ** @param backupObjID: if set, this object will be used for backup placement in case the original object fails to place in some instances
 **
 ** @returns: true on success, false on any failures
 */
-bool placeFarObjectMirrored(int objectID = -1, bool playerOwned = false, int num = 1, float minDist = 20.0, int altObjID = -1, int backupObjID = -1) {
+bool placeFarObjectMirrored(int objectID = -1, bool playerOwned = false, int num = 1, float minDist = 20.0, float maxDist = -1.0, int altObjID = -1, int backupObjID = -1) {
 	int succeeded = 0;
 
 	for(p = 1; <= getNumberPlayersOnTeam(0)) {
@@ -652,12 +666,12 @@ bool placeFarObjectMirrored(int objectID = -1, bool playerOwned = false, int num
 			player = getMirroredPlayer(player);
 		}
 
-		int placed = placeFarObjectForMirroredPlayers(player, objectID, playerOwned, num, minDist, altObjID);
+		int placed = placeFarObjectForMirroredPlayers(player, objectID, playerOwned, num, minDist, maxDist, altObjID);
 
 		if(placed == num) {
 			succeeded++;
 		} else if(backupObjID != -1) {
-			if(placeFarObjectForMirroredPlayers(player, backupObjID, playerOwned, num - placed, minDist, altObjID) == num - placed) {
+			if(placeFarObjectForMirroredPlayers(player, backupObjID, playerOwned, num - placed, minDist, maxDist, altObjID) == num - placed) {
 				succeeded++;
 			}
 		}
@@ -719,7 +733,7 @@ int placeObjectDefForPlayer(int player = 0, int objectID = -1, bool playerOwned 
 
 	int numIter = numTries * num;
 	int placed = 0;
-	float owner = 0; // Mother Nature.
+	int owner = 0; // Mother Nature.
 
 	if(playerOwned) { // Set owner to player.
 		owner = getPlayer(player);
@@ -754,7 +768,7 @@ int placeObjectDefForPlayer(int player = 0, int objectID = -1, bool playerOwned 
 }
 
 /*
-** Places an object within a given distance interval for a certain player.
+** Places an object within a given distance interval for each player.
 **
 ** Replaces rmPlaceObjectDefPerPlayer().
 ** If you use this function, be aware that the min/max distance of the object definition gets overwritten with the parameters used here.

@@ -1,7 +1,7 @@
 /*
 ** CALM SHORES MIRROR
 ** RebelsRising
-** Last edit: 05/05/2021
+** Last edit: 14/05/2022
 */
 
 include "rmx.xs";
@@ -24,10 +24,10 @@ void main() {
 	}
 
 	// Set size.
-	int mapSize = getStandardMapDimInMeters();
+	int axisLength = getStandardMapDimInMeters();
 
 	// Initialize map.
-	initializeMap("SandB", mapSize);
+	initializeMap("SandB", axisLength);
 
 	// Place players.
 	placePlayersInCircle(0.35, 0.35, 0.85);
@@ -79,7 +79,8 @@ void main() {
 	// Embellishment.
 	int embellishmentAvoidAll = createTypeDistConstraint("All", 3.0);
 
-	// Simple objects.
+	// Define objects.
+	// Starting objects.
 	// Starting settlement.
 	int startingSettlementID = rmCreateObjectDef("starting settlement");
 	rmAddObjectDefItem(startingSettlementID, "Settlement Level 1", 1, 0.0);
@@ -217,7 +218,6 @@ void main() {
 	int randomTreeID = rmCreateObjectDef("random tree");
 	rmAddObjectDefItem(randomTreeID, "Oak Tree", 1, 0.0);
 	setObjectDefDistanceToMax(randomTreeID);
-	rmAddObjectDefConstraint(randomTreeID, avoidAll);
 	rmAddObjectDefConstraint(randomTreeID, avoidStartingSettlement);
 	rmAddObjectDefConstraint(randomTreeID, avoidSettlement);
 	rmAddObjectDefConstraint(randomTreeID, mediumAvoidWater);
@@ -238,7 +238,7 @@ void main() {
 	float borderDistScaling = 1.0;
 	float radius = 0.2; // For fish placement.
 
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		lakeSize = 0.065;
 		borderSize = 0.0125;
 		borderDistScaling = 0.75;
@@ -365,8 +365,7 @@ void main() {
 		placeObjectForPlayer(fishID, 0, 1.0 - tempX, 1.0 - tempZ);
 	}
 
-	if(cNonGaiaPlayers > 2) {
-
+	if(gameIs1v1() == false) {
 		// Second iteration with smaller radius.
 		radius = 0.1;
 		offset = -0.25;
@@ -424,7 +423,7 @@ void main() {
 	// 10. Embellishment.
 	int forceSandNearWater = createTerrainMaxDistConstraint("Water", true, 30.0);
 
-	for(i = 0; < 20 * cNonGaiaPlayers) {
+	for(i = 0; < 40 * cNonGaiaPlayers / 2) {
 		beautificationID = rmCreateArea("beautification 1 " + i);
 		rmSetAreaTerrainType(beautificationID, "GrassDirt50");
 		rmSetAreaSize(beautificationID, rmAreaTilesToFraction(10), rmAreaTilesToFraction(50));
@@ -465,7 +464,7 @@ void main() {
 	addFairLocConstraint(avoidTowerLOS);
 	addFairLocConstraint(farAvoidWater);
 
-	addFairLoc(55.0, 75.0, false, true, 65.0, 12.0, 12.0);
+	addFairLoc(55.0, 75.0, false, true, 50.0, 12.0, 12.0);
 
 	// Far settlement.
 	addFairLocConstraint(avoidTowerLOS);
@@ -473,10 +472,10 @@ void main() {
 	addFairLocConstraint(farAvoidWater);
 
 	if(cNonGaiaPlayers == 2) {
-		if(randChance(0.8)) {
+		if(randChance(0.75)) {
 			addFairLoc(60.0, 90.0, true, true, 65.0, 60.0, 60.0);
 		} else {
-			addFairLoc(60.0, 90.0, false, false, 65.0, 12.0, 12.0);
+			addFairLoc(60.0, 90.0, false, false, 50.0, 12.0, 12.0);
 		}
 	} else {
 		addFairLoc(60.0, 90.0, true, true, 75.0, 60.0, 60.0);
@@ -559,8 +558,8 @@ void main() {
 	placeObjectMirrored(startingFoodID, false, 1, 22.0, 26.0);
 
 	// Berries.
-	placeFarObjectMirrored(farBerries1ID, false, 1, 50.0);
-	placeFarObjectMirrored(farBerries2ID, false, 1, 35.0);
+	placeFarObjectMirrored(farBerries1ID, false, 2, 30.0);
+	placeFarObjectMirrored(farBerries2ID, false, 1, 30.0);
 
 	// Straggler trees.
 	placeObjectMirrored(stragglerTree1ID, false, rmRandInt(1, 3), 13.0, 13.5, true);
@@ -585,13 +584,13 @@ void main() {
 		// Center forest.
 		int centerForestID = rmCreateArea("center forest");
 		rmSetAreaForestType(centerForestID, "Oak Forest");
-		rmSetAreaSize(centerForestID, areaRadiusMetersToFraction(rmRandFloat(2.0, 4.0)));
+		rmSetAreaSize(centerForestID, areaRadiusMetersToFraction(rmRandFloat(2.0, 3.0)));
 		rmSetAreaLocation(centerForestID, 0.5, 0.5);
 		rmSetAreaCoherence(centerForestID, 1.0);
 		rmBuildArea(centerForestID);
 	}
 
-	// Relics (non mirrored).
+	// Relics (non-mirrored).
 	placeObjectInPlayerSplits(relicID);
 
 	// Random trees.
@@ -605,7 +604,7 @@ void main() {
 	rmAddObjectDefConstraint(grassID, embellishmentAvoidAll);
 	rmAddObjectDefConstraint(grassID, farAvoidWater);
 	rmAddObjectDefConstraint(grassID, createTypeDistConstraint("Grass", 12.0));
-	rmPlaceObjectDefAtLoc(grassID, 0, 0.5, 0.5, 50 * cNonGaiaPlayers);
+	rmPlaceObjectDefAtLoc(grassID, 0, 0.5, 0.5, 40 * cNonGaiaPlayers);
 
 	// Bush.
 	int bushID = rmCreateObjectDef("bush");
@@ -614,19 +613,10 @@ void main() {
 	rmAddObjectDefConstraint(bushID, embellishmentAvoidAll);
 	rmAddObjectDefConstraint(bushID, farAvoidWater);
 	rmAddObjectDefConstraint(bushID, avoidStartingSettlement);
-	rmPlaceObjectDefAtLoc(bushID, 0, 0.5, 0.5, 25 * cNonGaiaPlayers);
-	
-	// Rock.
-	int rockID = rmCreateObjectDef("rock");
-	rmAddObjectDefItem(rockID, "Rock Sandstone Sprite", 1, 0.0);
-	setObjectDefDistanceToMax(rockID);
-	rmAddObjectDefConstraint(rockID, embellishmentAvoidAll);
-	rmAddObjectDefConstraint(rockID, createTerrainMaxDistConstraint("Water", true, 17.5));
-	rmAddObjectDefConstraint(rockID, mediumAvoidWater);
-	rmPlaceObjectDefAtLoc(rockID, 0, 0.5, 0.5, 20 * cNonGaiaPlayers);
+	rmPlaceObjectDefAtLoc(bushID, 0, 0.5, 0.5, 20 * cNonGaiaPlayers);
 
 	// Lone fish.
-	if(cNonGaiaPlayers > 2 && cNonGaiaPlayers < 7) {
+	if(gameIs1v1() == false && cNonGaiaPlayers < 7) {
 		// Only place this for 4 and 6 players.
 		int loneFishID = rmCreateObjectDef("lone fish");
 		rmAddObjectDefItem(loneFishID, "Fish - Mahi", 1, 0.0);
@@ -676,6 +666,7 @@ void main() {
 	rmPlaceObjectDefAtLoc(birdsID, 0, 0.5, 0.5, 2 * cNonGaiaPlayers);
 
 	// Finalize RM X.
+	// injectCeasefire(15000);
 	rmxFinalize();
 
 	progress(1.0);

@@ -158,7 +158,7 @@ void main() {
 	float dimX = 290.0 + 45.0 * min(cMaxPlayers, 3); // Limit max distance to what we have in 3v3.
 	float dimZ = 270.0 + 80.0 * cMaxPlayers;
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		dimX = 280.0;
 		dimZ = 280.0;
 	}
@@ -171,7 +171,7 @@ void main() {
 	initializeMap("Water", dimX, dimZ);
 
 	// Place players.
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		float placementEdgeDist = rmXMetersToFraction(50.0);
 
 		placePlayersInLine(placementEdgeDist, 0.6, 1.0 - placementEdgeDist, 0.6);
@@ -498,7 +498,7 @@ void main() {
 	}
 
 	// 6. Build lake for teamgames.
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		int lakeID = rmCreateArea("lake");
 		rmSetAreaSize(lakeID, 0.04);
 		rmSetAreaWaterType(lakeID, "Egyptian Nile");
@@ -567,7 +567,7 @@ void main() {
 
 	enableFairLocTwoPlayerCheck();
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		if(randChance(0.5)) {
 			addFairLoc(70.0, 110.0, true, true, 80.0, 12.0, 12.0, false, true);
 		} else {
@@ -589,7 +589,7 @@ void main() {
 
 	enableFairLocTwoPlayerCheck();
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		addFairLocConstraint(createBoxConstraint(0.0, 0.0, 1.0, 0.75));
 		addFairLoc(60.0, 100.0, false, true, 70.0, 12.0, 12.0);
 	} else if(cMaxPlayers < 3) {
@@ -740,7 +740,7 @@ void main() {
 		resetSimLocs();
 
 		// Bonus gold (random).
-		if(cNonGaiaPlayers < 3 && randChance()) {
+		if(gameIs1v1() && randChance()) {
 			addSimLocConstraint(goldBackConstraint);
 			addSimLocConstraint(avoidAll);
 			addSimLocConstraint(avoidEdge);
@@ -835,7 +835,7 @@ void main() {
 
 	// Food.
 	// Ocean shore hunt.
-	int oceanShoreHuntID = createObjectDefVerify("ocean shore hunt", cNonGaiaPlayers < 3);
+	int oceanShoreHuntID = createObjectDefVerify("ocean shore hunt", gameIs1v1());
 	if(randChance(0.75)) {
 		addObjectDefItemVerify(oceanShoreHuntID, "Crowned Crane", rmRandInt(5, 8), 2.0);
 	} else {
@@ -852,7 +852,7 @@ void main() {
 	rmAddObjectDefConstraint(oceanShoreHuntID, shortAvoidGold);
 	rmAddObjectDefConstraint(oceanShoreHuntID, avoidHuntable);
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		// Randomize angle.
 		float oceanHuntAngle = randFromIntervals(1.1, 1.15, 1.45, 1.75);
 
@@ -889,13 +889,13 @@ void main() {
 	rmAddObjectDefConstraint(lakeShoreHuntID, shortAvoidGold);
 	// rmAddObjectDefConstraint(lakeShoreHuntID, avoidHuntable);
 
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		rmAddObjectDefConstraint(lakeShoreHuntID, farAvoidCenter);
 
 		for(i = 0; < cTeams) {
 			placeObjectDefInArea(lakeShoreHuntID, 0, rmAreaID(cTeamSplitName + " " + i), 1);
 		}
-	} else if(cNonGaiaPlayers > 2) {
+	} else if(gameIs1v1() == false) {
 		placeObjectInTeamSplits(lakeShoreHuntID);
 	}
 
@@ -983,7 +983,7 @@ void main() {
 	addSimLocConstraint(shortAvoidGold);
 	addSimLocConstraint(avoidHuntable);
 	addSimLocConstraint(createClassDistConstraint(classStartingSettlement, 60.0));
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		addSimLocConstraint(goldBackConstraint);
 	} else {
 		setSimLocBias(cBiasBackward);
@@ -1032,7 +1032,7 @@ void main() {
 	addSimLocConstraint(shortAvoidGold);
 	addSimLocConstraint(avoidHuntable);
 	addSimLocConstraint(createClassDistConstraint(classStartingSettlement, 60.0));
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		setSimLocBias(cBiasForward);
 	}
 	enableSimLocTwoPlayerCheck();
@@ -1048,7 +1048,7 @@ void main() {
 	// Bonus hunt 3-4 into food zones.
 	int foodZone = createBoxConstraint(0.1, 0.075, 0.9, 0.3);
 
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		foodZone = createBoxConstraint(0.2, 0.1, 0.8, 0.7);
 	}
 
@@ -1100,7 +1100,7 @@ void main() {
 	}
 
 	// Bonus hunt 4 for 1v1.
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		int bonusHunt4ID = createObjectDefVerify("bonus hunt 4");
 		if(randChance(0.75)) {
 			// 1 group.
@@ -1260,7 +1260,7 @@ void main() {
 	int fishLandMin = createTerrainDistConstraint("Land", true, 17.0);
 	int fishLandMax = createTerrainMaxDistConstraint("Land", true, 20.0);
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		// Place first one dead ahead so that the other 2 fit in better.
 		float axisFishDist = 50.0;
 		float axisDistIncr = 1.0;
@@ -1334,7 +1334,7 @@ void main() {
 	// Randomly place singles.
 	int numLoneFish = 5;
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		numLoneFish = 10;
 	}
 

@@ -1,7 +1,7 @@
 /*
 ** RM X Framework.
 ** RebelsRising
-** Last edit: 14/04/2021
+** Last edit: 20/03/2022
 **
 ** Lowest library file in the hierarchy - include this in your random map script.
 ** Check core.xs for more details about the RM X framework.
@@ -50,7 +50,7 @@ void rmxInit(string mapName = "", bool shuffle = true, bool toggleMerge = true, 
 	// If we're debugging, do stuff here.
 	if(cDebugMode == cDebugFull) {
 		injectTestMode();
-		injectFlareOnCompile();
+		// injectFlareOnCompile();
 	}
 }
 

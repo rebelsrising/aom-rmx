@@ -33,7 +33,7 @@ void main() {
 	// Set size.
 	int axisLength = getStandardMapDimInMeters(9000);
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		axisLength = getStandardMapDimInMeters(9600);
 	}
 
@@ -75,7 +75,7 @@ void main() {
 	int avoidPlayerCore = createClassDistConstraint(classPlayerCore, 1.0);
 
 	// Different generation for non-1v1.
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		avoidPlayerCore = createClassDistConstraint(classPlayerCore, 70.0);
 	}
 
@@ -105,7 +105,7 @@ void main() {
 	int avoidPredator = createTypeDistConstraint("AnimalPredator", 40.0);
 
 	// Loosen constraints for anything but 1v1 as player areas become very small.
-	if(cNonGaiaPlayers > 2) { // 4 players is also problematic.
+	if(gameIs1v1() == false) { // 4 players is also problematic.
 		avoidHuntDist = 30.0;
 
 		avoidHuntable = createTypeDistConstraint("Huntable", avoidHuntDist);
@@ -333,7 +333,7 @@ void main() {
 	// Set up fake player areas.
 	for(i = 1; < cPlayers) {
 		int fakePlayerAreaID = rmCreateArea("fake player area " + i);
-		if(cNonGaiaPlayers < 3) {
+		if(gameIs1v1()) {
 			rmSetAreaSize(fakePlayerAreaID, rmAreaTilesToFraction(3000));
 		} else {
 			rmSetAreaSize(fakePlayerAreaID, rmAreaTilesToFraction(200));
@@ -354,7 +354,7 @@ void main() {
 
 	float islandEdgeDist = rmXTilesToFraction(20);
 
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		islandEdgeDist = rmXTilesToFraction(30);
 		numBonusIsland = 0;
 	}
@@ -391,7 +391,7 @@ void main() {
 	}
 
 	// Anything but 1v1.
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		bonusIslandID = rmCreateArea("center bonus island");
 		rmSetAreaSize(bonusIslandID, rmAreaTilesToFraction(3500 * cNonGaiaPlayers));
 		rmSetAreaLocation(bonusIslandID, 0.5, 0.5);
@@ -458,21 +458,11 @@ void main() {
 
 	rmBuildAllAreas();
 
-	// Rebuild center.
-	int fakeCenterID = rmCreateArea("fake center");
-	rmSetAreaSize(fakeCenterID, 0.5);
-	// rmSetAreaTerrainType(fakeCenterID, "SnowA");
-	rmSetAreaLocation(fakeCenterID, 0.5, 0.5);
-	rmAddAreaConstraint(fakeCenterID, shortAvoidImpassableLand);
-	rmAddAreaConstraint(fakeCenterID, shortAvoidPlayer);
-	rmSetAreaWarnFailure(fakeCenterID, false);
-	rmBuildArea(fakeCenterID);
-
 	// Build connections.
 	rmBuildConnection(teamShallowsID);
 	rmBuildConnection(shallowsID);
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		rmBuildConnection(extraShallowsID);
 	// Don't do this - I don't think this 2v2 variation is any good.
 	// } else if(cNonGaiaPlayers < 5) {
@@ -548,7 +538,7 @@ void main() {
 		// Far settlement.
 		addFairLocConstraint(shortAvoidPlayer);
 
-		if(cNonGaiaPlayers < 3) {
+		if(gameIs1v1()) {
 			addFairLocConstraint(farAvoidImpassableLand);
 		} else {
 			addFairLocConstraint(mediumAvoidImpassableLand); // Consider using farAvoidImpassableLand here.
@@ -558,7 +548,7 @@ void main() {
 		enableFairLocTwoPlayerCheck();
 
 		// Use 70.0 as low value. This is not actually possible, but favors lower values.
-		if(cNonGaiaPlayers < 3) {
+		if(gameIs1v1()) {
 			addFairLoc(70.0, 125.0, true, true, 80.0 - 5.0 * i, 12.0, 12.0);
 		} else if(cNonGaiaPlayers < 5) {
 			addFairLoc(70.0, 115.0 + 5.0 * i, true, true, 70.0 - 5.0 * i, 12.0, 12.0, false, gameHasTwoEqualTeams() && i < 2);
@@ -607,7 +597,7 @@ void main() {
 	}
 
 	// Create areas and place settlements.
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		for(i = 1; < cPlayers) {
 			int settlementAreaID = rmCreateArea("far settlement area " + i);
 			rmSetAreaLocation(settlementAreaID, getFairLocX(1, i), getFairLocZ(1, i));
@@ -655,7 +645,7 @@ void main() {
 	int farGoldID = -1;
 	int bonusGoldID = -1;
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		// 1v1 gold.
 		float goldFloat = rmRandFloat(0.0, 1.0);
 
@@ -925,7 +915,7 @@ void main() {
 	int numBonusHunt2 = 1;
 	int bonusHuntAvoidHuntable = avoidHuntable; // Adjust this for 1v1 if it causes problems.
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		if(randChance()) {
 			numBonusHunt1 = rmRandInt(1, 2);
 			numBonusHunt2 = 3 - numBonusHunt1;

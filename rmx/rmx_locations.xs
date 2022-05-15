@@ -1,10 +1,18 @@
 /*
-** Location storage data structure.
+** Location storage data structure and location placement functions.
 ** RebelsRising
-** Last edit: 12/05/2021
+** Last edit: 21/04/2022
 */
 
 include "rmx_util.xs";
+
+/************
+* CONSTANTS *
+************/
+
+const int cAreaStorageSize = 64;
+
+const string cLocAreaName = "rmx object loc area";
 
 /*******************
 * LOCATION STORAGE *
@@ -24,9 +32,8 @@ include "rmx_util.xs";
  * Example for 4 players placing twice: p1, p3, p1, p3, p2, p4, p2, p4.
 */
 
-const int cAreaStorageSize = 64;
-
 int locCounter = 0;
+int backupLocCounter = 0;
 bool isStorageActive = false;
 
 // Location X storage, starts at 1 due to often being used in combination with players.
@@ -398,7 +405,7 @@ void setLocXZ(int i = 0, float x = -1.0, float z = -1.0, int owner = 0) {
 void setLocBackupXZ(int i = 0, float x = -1.0, float z = -1.0, int owner = 0) {
 	setLocBackupX(i, x);
 	setLocBackupZ(i, z);
-	setLocBackupOwner(i, z);
+	setLocBackupOwner(i, owner);
 }
 
 /*
@@ -408,6 +415,21 @@ void backupLocStorage() {
 	for(i = 1; <= cAreaStorageSize) {
 		setLocBackupXZ(i, getLocX(i), getLocZ(i), getLocOwner(i));
 	}
+
+	// Overwrite counter.
+	backupLocCounter = locCounter;
+}
+
+/*
+** Applies a stored backup.
+*/
+void restoreLocStorage() {
+	for(i = 1; <= cAreaStorageSize) {
+		setLocXZ(i, getLocBackupX(i), getLocBackupZ(i), getLocBackupOwner(i));
+	}
+
+	// Overwrite counter.
+	locCounter = backupLocCounter;
 }
 
 /*
@@ -518,9 +540,188 @@ bool isLocStorageActive() {
 	return(isStorageActive);
 }
 
-/*****************************
-* LOCATION PLACEMENT UTILITY *
-*****************************/
+/************************************
+* PLAYER LOCATION PLACEMENT UTILITY *
+************************************/
+
+// Counter for area names so we don't end up with duplicates.
+int locNameCounter = 0;
+
+// Constraints for placeLocForPlayer().
+int locConstraintCount = 0;
+
+int locConstraint1 = -1; int locConstraint2  = -1; int locConstraint3  = -1; int locConstraint4  = -1;
+int locConstraint5 = -1; int locConstraint6  = -1; int locConstraint7  = -1; int locConstraint8  = -1;
+int locConstraint9 = -1; int locConstraint10 = -1; int locConstraint11 = -1; int locConstraint12 = -1;
+
+int getLocConstraint(int id = 0) {
+	if(id == 1) return(locConstraint1); if(id == 2)  return(locConstraint2);  if(id == 3)  return(locConstraint3);  if(id == 4)  return(locConstraint4);
+	if(id == 5) return(locConstraint5); if(id == 6)  return(locConstraint6);  if(id == 7)  return(locConstraint7);  if(id == 8)  return(locConstraint8);
+	if(id == 9) return(locConstraint9); if(id == 10) return(locConstraint10); if(id == 11) return(locConstraint11); if(id == 12) return(locConstraint12);
+	return(-1);
+}
+
+void setLocConstraint(int id = 0, int cID = -1) {
+	if(id == 1) locConstraint1 = cID; if(id == 2)  locConstraint2  = cID; if(id == 3)  locConstraint3  = cID; if(id == 4)  locConstraint4  = cID;
+	if(id == 5) locConstraint5 = cID; if(id == 6)  locConstraint6  = cID; if(id == 7)  locConstraint7  = cID; if(id == 8)  locConstraint8  = cID;
+	if(id == 9) locConstraint9 = cID; if(id == 10) locConstraint10 = cID; if(id == 11) locConstraint11 = cID; if(id == 12) locConstraint12 = cID;
+}
+
+/*
+** Adds a constraint for location placement.
+**
+** @param cID: the ID of the constraint to add.
+*/
+void addLocConstraint(int cID = -1) {
+	locConstraintCount++;
+	setLocConstraint(locConstraintCount, cID);
+}
+
+/*
+** Resets all constraints for location placement.
+*/
+void resetLocs() {
+	locConstraintCount = 0;
+}
+
+float placeLocMinAngle = 0.0;
+float placeLocMaxAngle = 2.0;
+
+/*
+** Sets the minimum/maximum angle to randomize from for placeLocForPlayer() and placeObjectDefForPlayer().
+**
+** @param startAngle: starting angle in radians but without multiplied by PI (basically the angle in radians / PI)
+** @param endAngle: ending angle in radians but without multiplied by PI (basically the angle in radians / PI)
+*/
+void setPlaceLocAngleRange(float startAngle = 0.0, float endAngle = 2.0) {
+	placeLocMinAngle = startAngle;
+	placeLocMaxAngle = endAngle;
+}
+
+/*
+** Resets the angles to default values. Has to be called manually if using placeObjectDefForPlayer() instead of placeObjectDefPerPlayer()!
+*/
+void resetPlaceLocAngle() {
+	setPlaceLocAngleRange();
+}
+
+/*
+** Places a given number of (small) locations within a given range for a player (similar to placeObjectDefForPlayer() for objects).
+** The locations of the resulting objects are stored in the location storage.
+** Useful if you want to determine the locations of objects, place some other areas (e.g., water, that can delete objects in proximity), and then place the objects.
+**
+** Note that, if you want these areas to avoid themselves, you have to define a class and reference its identifier via selfClassID.
+** Furthermore, you should add a corresponding constraint with addLocConstraint(), like createClassDistConstraint(classSelf, 1.0) (or whatever distance you want).
+**
+** If you want to bias the placement angle, make sure you use setPlaceLocAngleRange() with 2 arguments (min/max) from 0.0 to 2.0 (the function will then multiply this with pi).
+**
+** @param player: the player to generate the locations for
+** @param num: the number of locations to place
+** @param minDist: the minimum distance the location center can be from the player
+** @param maxDist: the maximum distance the location center can be from the player
+** @param selfClassID: the ID of the class of the areas, the areas will be added to this class (is thus required for self-avoidance)
+** @param square: if true, the radius is stretched to a square
+** @param numTries: the number of tries for each area to place
+**
+** @returns: the number of successfully placed locations
+*/
+int placeLocForPlayer(int player = 0, int num = 1, float minDist = 0.0, float maxDist = -1.0, int selfClassID = -1, bool square = false, int numTries = 250) {
+	if(maxDist < 0) {
+		maxDist = minDist;
+	}
+
+	int numIter = numTries * num;
+	int placed = 0;
+
+	for(i = 0; < numIter) {
+		float radius = randRadiusFromInterval(minDist, maxDist);
+		float angle = rmRandFloat(placeLocMinAngle, placeLocMaxAngle) * PI;
+
+		float x = fitToMap(getXFromPolarForPlayer(player, radius, angle, square));
+		float z = fitToMap(getZFromPolarForPlayer(player, radius, angle, square));
+
+		int areaID = rmCreateArea(cLocAreaName + " " + locNameCounter);
+
+		rmSetAreaLocation(areaID, x, z);
+
+		rmSetAreaSize(areaID, areaRadiusMetersToFraction(3.0));
+		// rmSetAreaTerrainType(areaID, "HadesBuildable1");
+		rmSetAreaCoherence(areaID, 1.0);
+
+		if(selfClassID > -1) {
+			rmAddAreaToClass(areaID, selfClassID);
+		}
+		for(j = 1; <= locConstraintCount) {
+			rmAddAreaConstraint(areaID, getLocConstraint(j));
+		}
+		rmSetAreaWarnFailure(areaID, false);
+
+		locNameCounter++;
+
+		if(rmBuildArea(areaID)) {
+			forceAddLocToStorage(x, z, player);
+			placed++;
+
+			if(placed == num) {
+				break;
+			}
+		}
+	}
+
+	return(placed);
+}
+
+/*
+** Creates location coordinates for an area within a given distance interval for each player, storing the x/z coordinates in the location storage.
+**
+** For more details check the above function placeLocForPlayer().
+**
+** @param num: the number of locations to place
+** @param minDist: the minimum distance the location center can be from the player
+** @param maxDist: the maximum distance the location center can be from the player
+** @param selfClassID: the ID of the class of the areas, the areas will be added to this class (is thus required for self-avoidance)
+** @param square: if true, the radius is stretched to a square
+** @param numTries: the number of tries for each area to place
+**
+** @returns: true on success, false on any failures
+*/
+bool placeLocPerPlayer(int num = 1, float minDist = 0.0, float maxDist = -1.0, int selfClassID = -1, bool square = false) {
+	int succeeded = 0;
+
+	for(p = 1; < cPlayers) {
+		if(placeLocForPlayer(p, num, minDist, maxDist, selfClassID, square) == num) {
+			succeeded++;
+		}
+	}
+
+	// Reset angle.
+	resetPlaceLocAngle();
+
+	return(succeeded == cNonGaiaPlayers);
+}
+
+/**********************************
+* MISC LOCATION PLACEMENT UTILITY *
+**********************************/
+
+/*
+** Places one location at the "center" of every team for a given radius.
+** Locations get appended at the current position the array is at, use resetLocStorage() if you want them at the beginning.
+**
+** @param radius: radius from the center to the location
+*/
+void placeLocationsAtTeamAngle(float radius = 0.0) {
+	for(i = 0; < cTeams) {
+		float teamAngle = getTeamAngle(i);
+
+		// Calculate x and z, use map center as offset.
+		float x = getXFromPolar(radius, teamAngle);
+		float z = getZFromPolar(radius, teamAngle);
+
+		// Fit to map and add to storage regardless of setting.
+		forceAddLocToStorage(fitToMap(x), fitToMap(z));
+	}
+}
 
 /*
 ** Creates locations between teams and stores them in the location storage.
@@ -617,7 +818,7 @@ void placeLocationsInCircle(int n = 1, float radius = 0.0, float angle = 0.0, fl
 	if(range < 1.0) {
 		// Sector segments.
 		interval = (2.0 * PI * range) / (n - 1);
-		a = a - ((1.0 * (n - 1)) / 2.0) * interval;
+		a = a - 0.5 * (n - 1) * interval;
 	}
 
 	for(i = 1; <= n) {
@@ -647,13 +848,13 @@ void placeLocationsInLine(int n = 1, float x1 = 0.0, float z1 = 0.0, float x2 = 
 	float zDist = (range * (z2 - z1)) / (n - 1);
 
 	// Adjust the first point in case a range was set.
-	x1 = x1 + ((1.0 - range) * (x2 - x1)) / 2.0;
-	z1 = z1 + ((1.0 - range) * (z2 - z1)) / 2.0;
+	x1 = x1 + 0.5 * (1.0 - range) * (x2 - x1);
+	z1 = z1 + 0.5 * (1.0 - range) * (z2 - z1);
 
 	// Special case for n = 1: Place between the two locations.
 	if(n == 1) {
-		x1 = (x2 + x1) / 2.0;
-		z1 = (z2 + z1) / 2.0;
+		x1 = 0.5 * (x2 + x1);
+		z1 = 0.5 * (z2 + z1);
 	}
 
 	for(i = 1; <= n) {

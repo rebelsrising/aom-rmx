@@ -4,7 +4,7 @@
 ** Last edit: 26/03/2021
 */
 
-include "rmx 5-0-0.xs";
+include "rmx.xs";
 
 void main() {
 	progress(0.0);
@@ -223,7 +223,7 @@ void main() {
 	addFairLocConstraint(avoidTowerLOS);
 
 	// Close settlement.
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		addFairLocConstraint(avoidCorner);
 	} else {
 		addFairLocConstraint(createClassDistConstraint(classStartingSettlement, 50.0));
@@ -238,7 +238,7 @@ void main() {
 
 	enableFairLocTwoPlayerCheck();
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		setFairLocInterDistMin(80.0);
 		addFairLoc(65.0, 80.0, true, false, 75.0, 50.0, 50.0, true);
 	} else if (cNonGaiaPlayers < 5) {
@@ -265,7 +265,7 @@ void main() {
 	for(i = 0; < numTries) {
 		int pondID = rmCreateArea("pond " + i);
 		rmSetAreaSize(pondID, rmAreaTilesToFraction(400));
-		if(cNonGaiaPlayers < 3) {
+		if(gameIs1v1()) {
 			rmSetAreaLocation(pondID, rmRandFloat(0.25, 0.75), rmRandFloat(0.25, 0.75));
 		} else {
 			rmSetAreaLocation(pondID, rmRandFloat(0.05, 0.95), rmRandFloat(0.05, 0.95));
@@ -359,7 +359,7 @@ void main() {
 	int numBonusGold = 4;
 
 	// Far gold (only guarantee 1 for 1v1).
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		int mediumGoldID = createObjectDefVerify("medium gold");
 		addObjectDefItemVerify(mediumGoldID, "Gold Mine", 1, 0.0);
 		setSimLocBias(cBiasForward); // We don't want any back mine.
@@ -383,12 +383,12 @@ void main() {
 
 	// Bonus gold.
 	// Very small chance to not place one mine in 2v2, just ignore because we have 4 mines per player anyway.
-	int bonusGoldID = createObjectDefVerify("bonus gold", cNonGaiaPlayers < 3 || cDebugMode >= cDebugFull);
+	int bonusGoldID = createObjectDefVerify("bonus gold", gameIs1v1() || cDebugMode >= cDebugFull);
 	addObjectDefItemVerify(bonusGoldID, "Gold Mine", 1, 0.0);
 	rmAddObjectDefConstraint(bonusGoldID, avoidAll);
 	rmAddObjectDefConstraint(bonusGoldID, avoidEdge);
 	rmAddObjectDefConstraint(bonusGoldID, avoidCorner);
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		rmAddObjectDefConstraint(bonusGoldID, createClassDistConstraint(classCenterline, 1.0));
 	}
 	rmAddObjectDefConstraint(bonusGoldID, farAvoidGold);
@@ -427,7 +427,7 @@ void main() {
 		addObjectDefItemVerify(mediumHunt1ID, "Giraffe", rmRandInt(2, 4), 2.0);
 	}
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		setObjectDefDistance(mediumHunt1ID, 55.0, 65.0);
 	} else {
 		setObjectDefDistance(mediumHunt1ID, 55.0, 70.0);
@@ -453,7 +453,7 @@ void main() {
 	}
 	addObjectDefItemVerify(mediumHunt2ID, "Gazelle", rmRandInt(0, 3), 2.0);
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		setObjectDefDistance(mediumHunt2ID, 60.0, 70.0);
 	} else {
 		setObjectDefDistance(mediumHunt2ID, 60.0, 75.0);
@@ -474,7 +474,7 @@ void main() {
 	float farHunt1Float = rmRandFloat(0.0, 1.0);
 
 	// Rarely fails to place in teamgames, but don't verify because there is so much hunt on the map anyway.
-	int farHunt1ID = createObjectDefVerify("far hunt 1", cNonGaiaPlayers < 3 || cDebugMode >= cDebugFull);
+	int farHunt1ID = createObjectDefVerify("far hunt 1", gameIs1v1() || cDebugMode >= cDebugFull);
 	if(farHunt1Float < 1.0 / 3.0) {
 		addObjectDefItemVerify(farHunt1ID, "Gazelle", rmRandInt(0, 4), 4.0);
 		addObjectDefItemVerify(farHunt1ID, "Zebra", rmRandInt(3, 6), 4.0);
@@ -485,7 +485,7 @@ void main() {
 		addObjectDefItemVerify(farHunt1ID, "Zebra", rmRandInt(3, 9), 2.0);
 	}
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		setObjectDefDistance(farHunt1ID, 70.0, 80.0);
 	} else {
 		setObjectDefDistance(farHunt1ID, 70.0, 85.0);
@@ -503,7 +503,7 @@ void main() {
 
 	// Far hunt 2.
 	// Rarely fails to place in teamgames, but don't verify because there is so much hunt on the map anyway.
-	int farHunt2ID = createObjectDefVerify("far hunt 2", cNonGaiaPlayers < 3 || cDebugMode >= cDebugFull);
+	int farHunt2ID = createObjectDefVerify("far hunt 2", gameIs1v1() || cDebugMode >= cDebugFull);
 	if(randChance()) {
 		addObjectDefItemVerify(farHunt2ID, "Elephant", rmRandInt(1, 2), 2.0);
 	} else {
@@ -520,7 +520,7 @@ void main() {
 
 	placeObjectAtPlayerLocs(farHunt2ID);
 
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		// Bonus tg hunt (don't verify).
 		int bonusHuntID = createObjectDefVerify("bonus hunt", cDebugMode >= cDebugFull);
 		addObjectDefItemVerify(bonusHuntID, "Gazelle", rmRandInt(1, 5), 2.0);

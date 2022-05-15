@@ -1,7 +1,7 @@
 /*
 ** ANATOLIA MIRROR
 ** RebelsRising
-** Last edit: 09/03/2021
+** Last edit: 14/05/2022
 */
 
 include "rmx.xs";
@@ -27,16 +27,16 @@ void main() {
 	setFarObjectAngleSlice(1.0 * PI, false);
 
 	// Set size.
-	int mapSize = getStandardMapDimInMeters();
+	int axisLength = getStandardMapDimInMeters(8000);
 
 	// Initialize map.
-	initializeMap("SandA", mapSize);
+	initializeMap("SandA", axisLength);
 
 	// Set lighting.
 	rmSetLightingSet("Anatolia");
 
 	// Player placement.
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		placePlayersInLine(0.12, 0.5, 0.88, 0.5);
 	} else {
 		int teamInt = rmRandInt(0, 1);
@@ -338,7 +338,7 @@ void main() {
 	int fishID = rmCreateObjectDef("close fish");
 	rmAddObjectDefItem(fishID, "Fish - Mahi", 3, 5.0);
 
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		int fishAvoidEdge = createSymmetricBoxConstraint(rmXTilesToFraction(2), rmZTilesToFraction(2));
 		int fishAvoidLand = createTerrainDistConstraint("Land", true, 8.0);
 		int avoidFish = createTypeDistConstraint("Fish", 20.0);
@@ -427,7 +427,7 @@ void main() {
 	// Close settlement.
 	addFairLocConstraint(farAvoidImpassableLand);
 
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		addFairLocConstraint(avoidTowerLOS);
 	}
 
@@ -440,7 +440,7 @@ void main() {
 	addFairLocConstraint(farAvoidImpassableLand);
 	addFairLocConstraint(createTypeDistConstraint("AbstractSettlement", 70.0));
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		addFairLoc(80.0, 100.0, true, false, 65.0, 12.0, 12.0);
 	} else if(cNonGaiaPlayers < 9) {
 		addFairLoc(90.0, 120.0, true, randChance(), 75.0, 12.0, 12.0);
@@ -548,7 +548,7 @@ void main() {
 	rmSetAreaCoherence(centerForestID, 1.0);
 	rmBuildArea(centerForestID);
 
-	// Relics (non mirrored).
+	// Relics (non-mirrored).
 	placeObjectInPlayerSplits(relicID);
 
 	// Random trees.

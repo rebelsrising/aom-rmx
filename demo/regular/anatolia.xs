@@ -4,7 +4,7 @@
 ** Last edit: 26/03/2021
 */
 
-include "rmx 5-0-0.xs";
+include "rmx.xs";
 
 void main() {
 	progress(0.0);
@@ -22,7 +22,7 @@ void main() {
 	rmSetLightingSet("Anatolia");
 
 	// Player placement.
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		// 1v1.
 		placePlayersInLine(0.12, 0.5, 0.88, 0.5);
 	} else if(cTeams < 3) {
@@ -208,7 +208,7 @@ void main() {
 	rmAddObjectDefConstraint(farPredatorsID, avoidEdge);
 	rmAddObjectDefConstraint(farPredatorsID, stayInCenterBox);
 	rmAddObjectDefConstraint(farPredatorsID, mediumAvoidImpassableLand);
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		rmAddObjectDefConstraint(farPredatorsID, createClassDistConstraint(classStartingSettlement, 70.0));
 	} else {
 		rmAddObjectDefConstraint(farPredatorsID, createClassDistConstraint(classStartingSettlement, 90.0));
@@ -337,7 +337,7 @@ void main() {
 	addFairLocConstraint(farAvoidImpassableLand);
 	addFairLocConstraint(avoidTowerLOS);
 
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		addFairLocConstraint(createClassDistConstraint(classStartingSettlement, 50.0));
 	}
 
@@ -357,7 +357,7 @@ void main() {
 
 	enableFairLocTwoPlayerCheck();
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		addFairLoc(80.0, 100.0, true, false, 75.0, 12.0, 12.0);
 	} else if(cNonGaiaPlayers < 5) {
 		addFairLoc(80.0, 100.0, true, randChance(), 70.0, 70.0, 70.0, false, gameHasTwoEqualTeams());
@@ -515,7 +515,7 @@ void main() {
 	float mediumHuntMinDist = rmRandFloat(70.0, 90.0);
 	float mediumHuntMaxDist = mediumHuntMinDist + 10.0;
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		mediumHuntMinDist = 60.0;
 		mediumHuntMaxDist = 85.0;
 		addSimLocConstraint(avoidSettlement); // For teamgames this is irrelevant.
@@ -638,7 +638,7 @@ void main() {
 	// Fish.
 	int fishID = 0;
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		fishID = createObjectDefVerify("fish");
 		addObjectDefItemVerify(fishID, "Fish - Mahi", 3, 6.0);
 

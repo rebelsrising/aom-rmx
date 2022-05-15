@@ -1,7 +1,7 @@
 /*
 ** NILE DELTA MIRROR
 ** RebelsRising
-** Last edit: 09/03/2021
+** Last edit: 14/05/2022
 */
 
 include "rmx.xs";
@@ -61,7 +61,7 @@ void main() {
 	setFarObjectAngleSlice(1.0 * PI, false);
 
 	// Set size.
-	int mapSize = getStandardMapDimInMeters(8000);
+	int axisLength = getStandardMapDimInMeters(8000);
 
 	// Initialize water.
 	rmSetSeaLevel(3.0);
@@ -75,7 +75,7 @@ void main() {
 		xFac = 0.85;
 	}
 
-	initializeMap("Water", xFac * mapSize, zFac * mapSize);
+	initializeMap("Water", xFac * axisLength, zFac * axisLength);
 
 	// Needed for fish angle adjustment.
 	int teamInt = rmRandInt(0, 1);
@@ -478,7 +478,7 @@ void main() {
 	rmBuildArea(shallowID);
 
 	// 2. Create bottom lake if > 3 players.
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		float sideLakeSize = rmRandFloat(0.0075, 0.0125);
 		float sideLakeZOffset = rmRandFloat(0.02, 0.06);
 		float sideLakeXOffset = rmRandFloat(0.1, 0.15);
@@ -534,7 +534,7 @@ void main() {
 		rmSetAreaCoherence(continentID, 1.0);
 		rmAddAreaConstraint(continentID, mediumAvoidCenter);
 
-		if(cNonGaiaPlayers < 3) {
+		if(gameIs1v1()) {
 			rmSetAreaSize(continentID, rmRandFloat(0.2, 0.2));
 		} else if(cNonGaiaPlayers < 5) {
 			rmSetAreaSize(continentID, rmRandFloat(0.25, 0.25));
@@ -558,7 +558,7 @@ void main() {
 		rmSetAreaCoherence(continentID, 1.0);
 		rmAddAreaConstraint(continentID, shortAvoidCenter);
 
-		if(cNonGaiaPlayers < 3) {
+		if(gameIs1v1()) {
 			rmSetAreaSize(continentID, 0.325);
 		} else if(cNonGaiaPlayers < 5) {
 			rmSetAreaSize(continentID, 0.35);
@@ -595,14 +595,14 @@ void main() {
 	// Find out for which player we have to place.
 	int oceanPlayer = 1;
 
-	if(teamInt == 1 && cNonGaiaPlayers > 2) {
+	if(teamInt == 1 && gameIs1v1() == false) {
 		oceanPlayer = getNumberPlayersOnTeam(0) + 1;
 	}
 
 	// Set blob size.
 	float shoreBlobSize = 25.0;
 
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		shoreBlobSize = 20.0 + 5.0 * (cNonGaiaPlayers / 2.0);
 	}
 
@@ -650,7 +650,7 @@ void main() {
 		rmBuildArea(shoreID);
 	}
 
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		for(i = 1; < 3) {
 			int areaNearLake = createAreaMaxDistConstraint(rmAreaID("small lake " + i), 15.0);
 
@@ -725,7 +725,7 @@ void main() {
 	addFairLocConstraint(avoidTowerLOS);
 	addFairLocConstraint(veryFarAvoidWater);
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		addFairLoc(60.0, 100.0, false, true, 70.0, 14.0, 14.0);
 	} else {
 		addFairLoc(60.0, 100.0, false, true, 55.0, 14.0, 14.0);
@@ -802,7 +802,7 @@ void main() {
 
 	if(cNonGaiaPlayers > 4) {
 		numForests = 6 * cNonGaiaPlayers / 2;
-	} else if(cNonGaiaPlayers > 2) {
+	} else if(gameIs1v1() == false) {
 		numForests = 8 * cNonGaiaPlayers / 2;
 	}
 
@@ -971,7 +971,7 @@ void main() {
 	float originalFishMinDist = 0.0; // Store for placements of other objects later on.
 	setObjectAngleInterval(1.15 * PI, 1.5 * PI, true);
 
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		numBonusFish = cNonGaiaPlayers;
 	} else {
 		setObjectAngleInterval(1.275 * PI, 1.4 * PI, true);
@@ -999,7 +999,7 @@ void main() {
 
 	// 2. Lower lake.
 
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		numPlayerFish = cNonGaiaPlayers / 2;
 
 		if(cNonGaiaPlayers > 7) {
@@ -1028,7 +1028,7 @@ void main() {
 
 	progress(0.9);
 
-	// Relics (non mirrored).
+	// Relics (non-mirrored).
 	placeObjectInPlayerSplits(relicID);
 
 	// Random trees.
@@ -1071,7 +1071,7 @@ void main() {
 	rmAddObjectDefConstraint(papyrus2ID, avoidDeepWater);
 	rmPlaceObjectDefAtLoc(papyrus2ID, 0, 0.5, 0.5, 5 * cNonGaiaPlayers);
 
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		for(i = 1; < 4) {
 			int nearLakeShore = rmCreateAreaMaxDistanceConstraint("near lake shore " + i, rmAreaID("small lake " + i), 15.0);
 

@@ -1,7 +1,7 @@
 /*
 ** RM X Framework
 ** RebelsRising
-** Last edit: 24/09/2021
+** Last edit: 14/05/2022
 **
 ** The purpose of the RM X framework is to serve as the ultimate random map scripting library for competitive Age of Mythology maps.
 **
@@ -101,6 +101,15 @@ extern int cPlayersObs = 0; // Number of players and observers (regular and addi
 
 // Constants.
 // Atlantean and Chinese gods IDs for vanilla/titans compatibility (so we can avoid using cCivGaia etc).
+extern const int cCivZeusID = cCivZeus;
+extern const int cCivPoseidonID = cCivPoseidon;
+extern const int cCivHadesID = cCivHades;
+extern const int cCivRaID = cCivRa;
+extern const int cCivIsisID = cCivIsis;
+extern const int cCivSetID = cCivSet;
+extern const int cCivOdinID = cCivOdin;
+extern const int cCivThorID = cCivThor;
+extern const int cCivLokiID = cCivLoki;
 extern const int cCivKronosID = 9;
 extern const int cCivOranosID = 10;
 extern const int cCivGaiaID = 11;
@@ -227,6 +236,9 @@ string map = "";
 
 // Convenience variables (essentially also constants) so we don't have to recalculate them every time.
 
+// Easy way to check whether the game is a 1v1.
+bool duel = false;
+
 // Easy way to check if the game is competitive (1v1, 2v2, 3v3, ...).
 bool twoEqualTeams = false;
 
@@ -325,6 +337,15 @@ void enableMergeMode() {
 }
 
 /*
+** Checks whether exactly two players are present (1v1).
+**
+** @returns: true if there are two players present, false otherwise
+*/
+bool gameIs1v1() {
+	return(duel);
+}
+
+/*
 ** Checks whether exactly two teams with equal numbers of players are present.
 **
 ** @returns: true if there are two equal teams with the same number of players, false otherwise
@@ -417,7 +438,7 @@ int getLargestTeamSize() {
 
 /*
 ** Returns the corresponding mirrored player of a given player.
-** The only difference here to getOpposingPlayer really is that we have to consider mirroring by point separately.
+** If no mirror mode is set, (counter-)clockwise placement is assumed.
 **
 ** @param p: the player
 **
@@ -492,23 +513,23 @@ string getGodName(int player = 0, bool map = true) {
 		civ = rmGetPlayerCiv(player);
 	}
 
-	if(civ == cCivZeus) {
+	if(civ == cCivZeusID) {
 		return("Zeus");
-	} else if(civ == cCivPoseidon) {
+	} else if(civ == cCivPoseidonID) {
 		return("Poseidon");
-	} else if(civ == cCivHades) {
+	} else if(civ == cCivHadesID) {
 		return("Hades");
-	} else if(civ == cCivRa) {
+	} else if(civ == cCivRaID) {
 		return("Ra");
-	} else if(civ == cCivIsis) {
+	} else if(civ == cCivIsisID) {
 		return("Isis");
-	} else if(civ == cCivSet) {
+	} else if(civ == cCivSetID) {
 		return("Set");
-	} else if(civ == cCivOdin) {
+	} else if(civ == cCivOdinID) {
 		return("Odin");
-	} else if(civ == cCivThor) {
+	} else if(civ == cCivThorID) {
 		return("Thor");
-	} else if(civ == cCivLoki) {
+	} else if(civ == cCivLokiID) {
 		return("Loki");
 	} else if(civ == cCivOranosID) {
 		return("Oranos");
@@ -805,7 +826,10 @@ void injectInitNote(bool addObsAllowed = true, bool mergeModeAllowed = true) {
 		}
 
 		// Patch, patch info and map info.
-		code("trChatSend(0, \"" + getPlayerColor(-1) + cPatch + cColorOff + "\");");
+		if(cPatch != "") {
+			code("trChatSend(0, \"" + getPlayerColor(-1) + cPatch + cColorOff + "\");");
+		}
+
 		if(cPatchInfo != "") {
 			code("trChatSend(0, \"" + getPlayerColor(-1) + cPatchInfo + cColorOff + "\");");
 		}
@@ -1046,7 +1070,7 @@ void calcInsideOutside() {
 }
 
 /*
-** The heart of the entire engine.
+** Every function in the library relies on the player order and parameters set by this function.
 ** Arranging the players ourselves is necessary so we know who is placed where.
 ** This is crucial for any sort of player placement, fair locations, triggers, or mirroring.
 **
@@ -1116,6 +1140,7 @@ void initPlayers(bool shuffle = true) {
 	anyObs = realObs || addObs;
 	mergeModeOn = cPlayers != cPlayersMerged; // Overrides merge mode settings if no merged players are present.
 	twoEqualTeams = getNumberPlayersOnTeam(0) == getNumberPlayersOnTeam(1) && cTeams == 2;
+	duel = twoEqualTeams && cNonGaiaPlayers == 2;
 
 	// Shuffle if requested.
 	if(shuffle) {

@@ -1,7 +1,7 @@
 /*
 ** General math functionality.
 ** RebelsRising
-** Last edit: 07/03/2021
+** Last edit: 13/05/2022
 */
 
 /************
@@ -9,6 +9,7 @@
 ************/
 
 extern const float PI = 3.14159265359;
+extern const float NPI = -3.14159265359;
 extern const float e = 2.71828182846;
 extern const float SQRT_2 = 1.4142135624;
 extern const float HALF_SQRT_2 = 0.7071067812;
@@ -61,7 +62,11 @@ float max(float x = 0.0, float y = NINF) {
 ** @returns: the floor value of x
 */
 float floor(float x = 0.0) {
-	return(0.0 + 1 * x);
+	if(x == 0 + x) {
+		return(x); // Return x if x is an int for correctness.
+	}
+
+	return(0.0 + (0 + x));
 }
 
 /*
@@ -72,7 +77,11 @@ float floor(float x = 0.0) {
 ** @returns: the ceiling value of x
 */
 float ceil(float x = 0.0) {
-	return(0.0 + (1 * x + 1));
+	if(x == 0 + x) {
+		return(x); // Return x if x is an int for correctness.
+	}
+
+	return(0.0 + (1 + x));
 }
 
 /*
@@ -139,25 +148,26 @@ float sgn(float x = 0.0) {
 }
 
 /*
-** Calculates the power of a float.
+** Calculates the power of a float (or int).
 **
 ** @param x: the base
 ** @param n: the exponent
 **
-** @returns: x^n
+** @returns: x^n as a float
 */
 float pow(float x = 0.0, int n = 0) {
 	if(n == 0) {
 		return(1.0);
 	}
 
-	float res = x;
+	float p = pow(x, n / 2); // Int division.
 
-	for(i = 1; < n) {
-		res = res * x;
+	if(n % 2 == 1) {
+		// In case we truncated 1 from the exponent in the int division above.
+		return(0.0 + x * p * p);
 	}
 
-	return(res);
+	return(p * p);
 }
 
 /*

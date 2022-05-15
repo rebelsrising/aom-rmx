@@ -1,7 +1,7 @@
 /*
 ** MARSH MIRROR
 ** RebelsRising
-** Last edit: 09/03/2021
+** Last edit: 14/05/2022
 */
 
 include "rmx.xs";
@@ -60,14 +60,14 @@ void main() {
 	}
 
 	// Set size.
-	int mapSize = getStandardMapDimInMeters(9000, 0.9, 1.8);
+	int axisLength = getStandardMapDimInMeters(9000, 0.9, 1.8);
 
 	// Initialize water.
 	rmSetSeaLevel(1.0);
 	rmSetSeaType(terrainMarshPool);
 
 	// Initialize map.
-	initializeMap("Water", mapSize);
+	initializeMap("Water", axisLength);
 
 	// Set lighting.
 	//rmSetLightingSet("Fimbulwinter");
@@ -104,7 +104,7 @@ void main() {
 	int avoidConnection = createClassDistConstraint(classConnection, 1.0);
 	int shortAvoidIsland = createClassDistConstraint(classIsland, 20.0);
 	int avoidPlayerCore = createClassDistConstraint(classPlayerCore, 0.1);
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		avoidPlayerCore = createClassDistConstraint(classPlayerCore, 60.0);
 	}
 
@@ -396,7 +396,6 @@ void main() {
 	// Relics.
 	int relicID = rmCreateObjectDef("relic");
 	rmAddObjectDefItem(relicID, "Relic", 1, 0.0);
-	setObjectDefDistanceToMax(relicID);
 	rmAddObjectDefConstraint(relicID, avoidAll);
 	rmAddObjectDefConstraint(relicID, avoidEdge);
 	rmAddObjectDefConstraint(relicID, avoidRelic);
@@ -407,7 +406,7 @@ void main() {
 
 	// Define player connections.
 	int shallowsID = rmCreateConnection("shallows");
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		rmSetConnectionType(shallowsID, cConnectAreas, false);
 	} else {
 		rmSetConnectionType(shallowsID, cConnectAllies, false);
@@ -427,7 +426,7 @@ void main() {
 	// Set up fake player areas.
 	for(i = 1; < cPlayers) {
 		int fakePlayerAreaID = rmCreateArea("fake player area " + i);
-		if(cNonGaiaPlayers < 3) {
+		if(gameIs1v1()) {
 			rmSetAreaSize(fakePlayerAreaID, rmAreaTilesToFraction(3000));
 		} else {
 			rmSetAreaSize(fakePlayerAreaID, rmAreaTilesToFraction(200));
@@ -446,7 +445,7 @@ void main() {
 
 	float islandEdgeDist = rmXTilesToFraction(20);
 
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		islandEdgeDist = rmXTilesToFraction(30);
 		numBonusIsland = 0;
 	}
@@ -488,7 +487,7 @@ void main() {
 		rmBuildArea(bonusIslandID);
 	}
 
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		bonusIslandID = rmCreateArea("center bonus island");
 		rmSetAreaSize(bonusIslandID, rmAreaTilesToFraction(3500 * cNonGaiaPlayers));
 		rmSetAreaLocation(bonusIslandID, 0.5, 0.5);
@@ -545,7 +544,7 @@ void main() {
 	// Build connections.
 	int numConnections = 3;
 
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		numConnections = getNumberPlayersOnTeam(0);
 	}
 
@@ -564,7 +563,7 @@ void main() {
 		float b = getTeamAngle(1) + offset;
 		float r = 0.5;
 
-		if(cNonGaiaPlayers > 2) {
+		if(gameIs1v1() == false) {
 			a = getPlayerAngle(n);
 			b = a + PI;
 		}
@@ -579,7 +578,7 @@ void main() {
 
 		for(i = 0; < numAreas) {
 			int bonusConnectionID = rmCreateArea("random connection " + n + " " + i);
-			if(cNonGaiaPlayers < 3) {
+			if(gameIs1v1()) {
 				rmSetAreaSize(bonusConnectionID, rmRandFloat(0.005, 0.0075));
 			} else {
 				rmSetAreaSize(bonusConnectionID, rmXMetersToFraction(rmRandFloat(3.0, 4.0)));
@@ -677,7 +676,7 @@ void main() {
 		addFairLocConstraint(farAvoidWater);
 		addFairLocConstraint(shortAvoidPlayer);
 
-		if(cNonGaiaPlayers < 3) {
+		if(gameIs1v1()) {
 			addFairLocConstraint(createTypeDistConstraint("AbstractSettlement", 65.0));
 			addFairLoc(60.0, 100.0, true, false, 65.0, 12.0, 12.0);
 		} else if(cNonGaiaPlayers < 5) {
@@ -829,7 +828,7 @@ void main() {
 	rmSetAreaCoherence(centerForestID, 1.0);
 	rmBuildArea(centerForestID);
 
-	// Relics (non mirrored).
+	// Relics (non-mirrored).
 	placeObjectInPlayerSplits(relicID, false, 2);
 
 	// Random trees.

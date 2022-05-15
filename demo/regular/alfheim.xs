@@ -4,7 +4,7 @@
 ** Last edit: 26/03/2021
 */
 
-include "rmx 5-0-0.xs";
+include "rmx.xs";
 
 void main() {
 	progress(0.0);
@@ -274,7 +274,7 @@ void main() {
 	addFairLocConstraint(avoidTowerLOS);
 
 	// Close settlement.
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		addFairLocConstraint(avoidCorner);
 	} else {
 		addFairLocConstraint(createClassDistConstraint(classStartingSettlement, 50.0));
@@ -292,7 +292,7 @@ void main() {
 
 	enableFairLocTwoPlayerCheck();
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		addFairLoc(70.0, 120.0, true, false, 80.0, 12.0, 12.0);
 	} else if(cNonGaiaPlayers < 5) {
 		addFairLoc(70.0, 100.0, true, false, 70.0, 30.0, 30.0, false, gameHasTwoEqualTeams());
@@ -393,7 +393,7 @@ void main() {
 		addSimLocConstraint(farAvoidGold);
 		addSimLocConstraint(createClassDistConstraint(classStartingSettlement, 50.0));
 
-		if(cNonGaiaPlayers < 3) {
+		if(gameIs1v1()) {
 			enableSimLocTwoPlayerCheck();
 			setSimLocInterval(10.0);
 			addSimLocWithPrevConstraints(50.0, 60.0, avoidGoldDist, 8.0, 8.0, false, false, true);
@@ -409,7 +409,7 @@ void main() {
 	int numTwoPlayerGold = 0;
 
 	// Place first 2 bonus gold mines with similar locations in 1v1 for balance due to the cliffs.
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		int farGoldID = createObjectDefVerify("far gold");
 		addObjectDefItemVerify(farGoldID, "Gold Mine", 1, 0.0);
 
@@ -517,7 +517,7 @@ void main() {
 	float mediumHuntMinDist = rmRandFloat(60.0, 75.0);
 	float mediumHuntMaxDist = mediumHuntMinDist + 10.0;
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		mediumHuntMinDist = 60.0;
 		mediumHuntMaxDist = 85.0;
 	} else if(numCloseHunt > 1) {

@@ -4,7 +4,7 @@
 ** Last edit: 26/03/2021
 */
 
-include "rmx 5-0-0.xs";
+include "rmx.xs";
 
 const int cSkewLeftRight = 0;
 const int cSkewRightLeft = 1;
@@ -55,7 +55,7 @@ void main() {
 	}
 
 	// Player placement.
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		// Potentially merge with else if section.
 		if(skew == cSkewLeftRight) {
 			placePlayersInLine(0.2, 0.5, 0.8, 0.5);
@@ -239,7 +239,7 @@ void main() {
 	progress(0.1);
 
 	// Define 1v1 connections to third settlement.
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		for(i = 1; < cPlayers) {
 			int connectionID = rmCreateConnection("connection " + i);
 			rmSetConnectionType(connectionID, cConnectAreas, false, 1.0);
@@ -267,7 +267,7 @@ void main() {
 		rmSetAreaWarnFailure(playerAreaID, false);
 
 		// Add player area to corresponding connection for 1v1.
-		if(cNonGaiaPlayers < 3) {
+		if(gameIs1v1()) {
 			rmAddConnectionArea(getConnectionID(i), playerAreaID);
 		}
 	}
@@ -342,7 +342,7 @@ void main() {
 	rmBuildAllAreas();
 
 	// Back forest for teamgames.
-	if(cTeams == 2 && cNonGaiaPlayers > 2) {
+	if(cTeams == 2 && gameIs1v1() == false) {
 		for(i = 0; < 2) {
 			int backForestID = rmCreateArea("back forest " + i);
 			rmSetAreaSize(backForestID, rmAreaTilesToFraction(90), rmAreaTilesToFraction(110));
@@ -422,7 +422,7 @@ void main() {
 
 	enableFairLocTwoPlayerCheck(1.0 / 3.0);
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		setFairLocInterDistMin(70.0);
 		addFairLocConstraint(createClassDistConstraint(classCenterline, 35.0));
 
@@ -441,7 +441,7 @@ void main() {
 	createFairLocs("settlements");
 
 	// Only actually build the connections for 1v1.
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		for(i = 1; < cPlayers) {
 			int settlementAreaID = rmCreateArea("far settlement area " + i);
 			rmSetAreaLocation(settlementAreaID, getFairLocX(2, i), getFairLocZ(2, i)); // Second fair loc.
@@ -464,7 +464,7 @@ void main() {
 	int cliffID = -1;
 	int numCliffs = 0;
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		numCliffs = 3 * cNonGaiaPlayers;
 	} else {
 		numCliffs = 2 * cNonGaiaPlayers * stretchFactor;
@@ -503,7 +503,7 @@ void main() {
 		rmAddAreaConstraint(cliffID, cliffAvoidEdge);
 		rmAddAreaConstraint(cliffID, cliffAvoidPlayer);
 		rmAddAreaConstraint(cliffID, cliffAvoidConnection);
-		if(cNonGaiaPlayers < 3) {
+		if(gameIs1v1()) {
 			// Only avoid centerline and connections for 1v1.
 			rmAddAreaConstraint(cliffID, cliffAvoidCenterline);
 		}
@@ -518,7 +518,7 @@ void main() {
 	int numMediumGold = 0;
 	int numBonusGold = 0;
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		float goldFloat = rmRandFloat(0.0, 1.0);
 
 		if(goldFloat < 0.25) {
@@ -542,7 +542,7 @@ void main() {
 	setObjectDefDistance(mediumGoldID, 60.0, 60.0 + 20.0 * numMediumGold);
 	rmAddObjectDefConstraint(mediumGoldID, avoidAll);
 	rmAddObjectDefConstraint(mediumGoldID, createSymmetricBoxConstraint(rmXTilesToFraction(8), rmZTilesToFraction(8)));
-	if(cNonGaiaPlayers < 3 || gameHasTwoEqualTeams() == false) {
+	if(gameIs1v1() || gameHasTwoEqualTeams() == false) {
 		rmAddObjectDefConstraint(mediumGoldID, createClassDistConstraint(classCenterline, 60.0 - 10.0 * numMediumGold));
 	} else {
 		rmAddObjectDefConstraint(mediumGoldID, createClassDistConstraint(classCenterline, smallerFractionToMeters(0.25)));
@@ -568,7 +568,7 @@ void main() {
 	rmAddObjectDefConstraint(bonusGoldID, avoidTowerLOS);
 	rmAddObjectDefConstraint(bonusGoldID, farAvoidImpassableLand);
 	rmAddObjectDefConstraint(bonusGoldID, mediumAvoidSettlement);
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		rmAddObjectDefConstraint(bonusGoldID, createTypeDistConstraint("Gold", 50.0 - 10.0 * numBonusGold));
 	} else {
 		rmAddObjectDefConstraint(bonusGoldID, createTypeDistConstraint("Gold", 45.0 - 5.0 * numBonusGold));
@@ -595,7 +595,7 @@ void main() {
 	// Medium hunt 1 (side/behind).
 	int numMediumHunt1 = rmRandInt(1, 2);
 
-	if(cNonGaiaPlayers > 2 || gameHasTwoEqualTeams() == false) {
+	if(gameIs1v1() == false || gameHasTwoEqualTeams() == false) {
 		numMediumHunt1 = 1;
 	}
 

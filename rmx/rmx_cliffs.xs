@@ -1,7 +1,7 @@
 /*
 ** Default mirrored cliff generation.
 ** RebelsRising
-** Last edit: 07/03/2021
+** Last edit: 20/03/2022
 */
 
 include "rmx_forests.xs";
@@ -412,6 +412,9 @@ float cliffMaxCoherence = 1.0;
 float cliffMinRadius = 20.0;
 float cliffMaxRadius = -1.0;
 
+float cliffMinAngle = NPI;
+float cliffMaxAngle = PI;
+
 // Constraint for self avoidance.
 int cliffAvoidSelfID = -1;
 
@@ -504,6 +507,17 @@ void setCliffSearchRadius(float minRadius = 20.0, float maxRadius = -1.0) {
 }
 
 /*
+** Sets a minimum and maximum angle in radians to consider when placing cliffs.
+**
+** @param minRadius: minimum angle in radians to randomize
+** @param maxRadius: maximum angle in radians to randomize
+*/
+void setCliffSearchAngle(float minAngle = NPI, float maxAngle = PI) {
+	cliffMinAngle = minAngle;
+	cliffMaxAngle = maxAngle;
+}
+
+/*
 ** Resets cliff settings and restores defaults.
 */
 void resetCliffs() {
@@ -522,6 +536,7 @@ void resetCliffs() {
 	setCliffCoherence();
 	setCliffNumRamps();
 	setCliffSearchRadius();
+	setCliffSearchAngle();
 	setCliffAvoidSelf();
 	setCliffEnforceConstraints();
 	setCliffRequiredRatio();
@@ -561,6 +576,15 @@ float getCliffLocRadius() {
 	}
 
 	return(rmRandFloat(cliffMinRadius, cliffMaxRadius));
+}
+
+/*
+** Randomizes an angle from the specified range.
+**
+** @returns: the randomized cliff angle
+*/
+float getCliffLocAngle() {
+	return(rmRandFloat(cliffMinAngle, cliffMaxAngle));
 }
 
 /*
@@ -664,7 +688,7 @@ void placeRampCliffShape(int numRamps = 0, float radius = 0.0, float angle = 0.0
 ** @param numBlobs: the number of blobs to create areas for
 ** @param areaID: the template for area IDs (will have appended " " + i during the loop)
 ** @param type: the type (one of cCliffTypeFake, cCliffTypeInner, cCliffTypeOuter, cCliffTypeRamp)
-** @param addToClass: whether to add the area to the forest class
+** @param addToClass: whether to add the area to the cliff class
 ** @param avoidSelf: whether to apply the constraint for self-avoidance
 */
 void createCliffBlobAreas(int numBlobs = 0, string areaID = "", int type = cCliffTypeFake, bool addToClass = false, bool avoidSelf = true) {
@@ -739,13 +763,13 @@ bool buildCliffShape(int numBlobs = 0, int player = 0) {
 
 	// Randomize angle and radius.
 	float radius = getCliffLocRadius();
-	float angle = randRadian();
+	float angle = getCliffLocAngle();
 
 	int numTries = 0;
 
 	while(isCliffLocValid(radius, angle, player) == false && numTries < 100) {
 		radius = getCliffLocRadius();
-		angle = randRadian();
+		angle = getCliffLocAngle();
 		numTries++;
 	}
 
@@ -844,7 +868,7 @@ int buildCliffs(int numCliffs = 0, float prog = 0.0, int player = 0, int numTrie
 
 	// Prepare first iteration.
 	int numBlobs = rmRandInt(cliffMinBlobs, cliffMaxBlobs);
-	float coherence = rmRandInt(cliffMinCoherence, cliffMaxCoherence);
+	float coherence = rmRandFloat(cliffMinCoherence, cliffMaxCoherence);
 
 	// Build a random shape.
 	createRandomShape(numBlobs, coherence);
@@ -863,7 +887,7 @@ int buildCliffs(int numCliffs = 0, float prog = 0.0, int player = 0, int numTrie
 
 		// Prepare for next iteration.
 		numBlobs = rmRandInt(cliffMinBlobs, cliffMaxBlobs);
-		coherence = rmRandInt(cliffMinCoherence, cliffMaxCoherence);
+		coherence = rmRandFloat(cliffMinCoherence, cliffMaxCoherence);
 
 		createRandomShape(numBlobs, coherence);
 	}
@@ -875,7 +899,7 @@ int buildCliffs(int numCliffs = 0, float prog = 0.0, int player = 0, int numTrie
 ** Attempts to build a given number of mirrored cliffs around every player according to the previously specified parameters.
 ** The function iterates over the number of players in the team and places a cliff for every player and their mirrored counterpart.
 **
-** If it should ever be necessary to verify how many cliffs very successfully built and for which pair of players, make a custom version of this function
+** If it should ever be necessary to verify how many cliffs were successfully built and for which pair of players, make a custom version of this function
 ** along with a data structure to store the return result of buildCliffs().
 **
 ** @param numCliffs: the number of cliffs to build

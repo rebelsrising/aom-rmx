@@ -1,7 +1,7 @@
 /*
 ** ALFHEIM MIRROR
 ** RebelsRising
-** Last edit: 09/03/2021
+** Last edit: 14/05/2022
 */
 
 include "rmx.xs";
@@ -24,10 +24,10 @@ void main() {
 	}
 
 	// Set size.
-	int mapSize = getStandardMapDimInMeters(7500, 1.0);
+	int axisLength = getStandardMapDimInMeters(7500, 1.0);
 
 	// Initialize map.
-	initializeMap("GrassA", mapSize);
+	initializeMap("GrassA", axisLength);
 
 	// Set lighting.
 	rmSetLightingSet("Alfheim");
@@ -326,7 +326,7 @@ void main() {
 	int settlementAvoidCenter = createClassDistConstraint(classCenter, 10.0 + 0.5 * (tcDist - 2.0 * centerRadius));
 
 	// Close settlement.
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		addFairLocConstraint(avoidCorner);
 	} else {
 		addFairLocConstraint(avoidTowerLOS);
@@ -343,7 +343,7 @@ void main() {
 	addFairLocConstraint(avoidTowerLOS);
 	addFairLocConstraint(createTypeDistConstraint("AbstractSettlement", 60.0));
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		addFairLoc(60.0, 100.0, true, false, 65.0, 12.0, 12.0);
 	} else {
 		addFairLoc(60.0, 100.0, true, false, 75.0, 30.0, 30.0, false, randChance());

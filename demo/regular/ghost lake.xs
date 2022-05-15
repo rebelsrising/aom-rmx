@@ -4,7 +4,7 @@
 ** Last edit: 26/03/2021
 */
 
-include "rmx 5-0-0.xs";
+include "rmx.xs";
 
 void main() {
 	progress(0.0);
@@ -333,7 +333,7 @@ void main() {
 
 	enableFairLocTwoPlayerCheck();
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		setFairLocInterDistMin(90.0);
 		addFairLoc(70.0, 120.0, true, false, 70.0, 12.0, 12.0, true);
 	} else {
@@ -348,7 +348,7 @@ void main() {
 	addFairLocConstraint(avoidTowerLOS);
 	addFairLocConstraint(mediumAvoidCenter);
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		addFairLocConstraint(avoidCorner);
 		addFairLoc(60.0, 80.0, false, true, 65.0, 12.0, 12.0);
 	} else {
@@ -398,7 +398,7 @@ void main() {
 		}
 
 		for(j = 0; < numTeamCliffs) {
-			if(cNonGaiaPlayers < 3) {
+			if(gameIs1v1()) {
 				// Small, in team/player area.
 				cliffID = rmCreateArea("cliff " + i + " " + j, rmAreaID(cTeamSplitName + " " + i));
 				rmSetAreaSize(cliffID, rmAreaTilesToFraction(200), rmAreaTilesToFraction(300));
@@ -450,7 +450,7 @@ void main() {
 	// Gold.
 	int numBonusGold = rmRandInt(2, 4);
 
-	if(cNonGaiaPlayers < 3 && numBonusGold == 2) {
+	if(gameIs1v1() && numBonusGold == 2) {
 		// In the case of only placing 2 fair mines, place one a bit closer.
 		int farGoldID = createObjectDefVerify("far gold");
 		addObjectDefItemVerify(farGoldID, "Gold Mine", 1, 0.0);
@@ -480,7 +480,7 @@ void main() {
 	rmAddObjectDefConstraint(bonusGoldID, avoidAll);
 	rmAddObjectDefConstraint(bonusGoldID, avoidEdge);
 	rmAddObjectDefConstraint(bonusGoldID, shortAvoidCenter);
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		rmAddObjectDefConstraint(bonusGoldID, avoidCorner);
 		rmAddObjectDefConstraint(bonusGoldID, avoidCenterline);
 		rmAddObjectDefConstraint(bonusGoldID, createClassDistConstraint(classStartingSettlement, 80.0));
@@ -556,7 +556,7 @@ void main() {
 	int farHuntID = createObjectDefVerify("far hunt");
 	addObjectDefItemVerify(farHuntID, "Caribou", rmRandInt(4, 10), 4.0);
 
-	if(numFarHunt == 1 && cNonGaiaPlayers < 3) {
+	if(numFarHunt == 1 && gameIs1v1()) {
 		// Only have one close hunt and one far hunt.
 
 		addSimLocConstraint(avoidAll);

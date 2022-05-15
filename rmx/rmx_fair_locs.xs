@@ -1,7 +1,7 @@
 /*
 ** Fair location generation.
 ** RebelsRising
-** Last edit: 07/03/2021
+** Last edit: 20/03/2022
 **
 ** Potential TODOs:
 ** - Adjust failCount handling.
@@ -867,8 +867,7 @@ void addFairLocWithPrevConstraints(float minDist = 0.0, float maxDist = -1.0, bo
 		}
 	}
 
-	// Set player order.
-	setFairLocPlayerOrder(fairLocID);
+	addFairLoc(minDist, maxDist, forward, inside, areaDist, distX, distZ, inPlayerArea, inTeamArea, isSquare, insideOut, fairLocID);
 }
 
 /*
@@ -1195,10 +1194,10 @@ bool performFairLocTwoPlayerCheck(int fairLocID = -1) {
 
 	// Get the distance in meters between p1 and the fair loc of p2 and the other way around.
 	float distP1 = pointsGetDist(rmXFractionToMeters(getPlayerLocXFraction(1)), rmZFractionToMeters(getPlayerLocZFraction(1)),
-								 rmXFractionToMeters(getFairLocX(fairLocID, 2)), rmZFractionToMeters(getFairLocZ(fairLocID, 2)));
+							     rmXFractionToMeters(getFairLocX(fairLocID, 2)), rmZFractionToMeters(getFairLocZ(fairLocID, 2)));
 
 	float distP2 = pointsGetDist(rmXFractionToMeters(getPlayerLocXFraction(2)), rmZFractionToMeters(getPlayerLocZFraction(2)),
-								 rmXFractionToMeters(getFairLocX(fairLocID, 1)), rmZFractionToMeters(getFairLocZ(fairLocID, 1)));
+						         rmXFractionToMeters(getFairLocX(fairLocID, 1)), rmZFractionToMeters(getFairLocZ(fairLocID, 1)));
 
 	// Divide the smaller distance by the larger to get the fraction.
 	if(distP1 < distP2) {
@@ -1210,6 +1209,8 @@ bool performFairLocTwoPlayerCheck(int fairLocID = -1) {
 			return(false);
 		}
 	}
+
+	// If this is not fair enough, consider comparing distances between a player's location and their fair location as well.
 
 	return(true);
 }
@@ -1347,9 +1348,9 @@ bool buildFairLoc(int fairLocID = -1, int player = 0) {
 
 	rmSetAreaLocation(areaID, getFairLocX(fairLocID, player), getFairLocZ(fairLocID, player));
 
-	rmSetAreaSize(areaID, rmXMetersToFraction(0.1));
-	//rmSetAreaTerrainType(areaID, "HadesBuildable1");
-	//rmSetAreaBaseHeight(areaID, 10.0);
+	rmSetAreaSize(areaID, areaRadiusMetersToFraction(3.0));
+	// rmSetAreaTerrainType(areaID, "HadesBuildable1");
+	// rmSetAreaBaseHeight(areaID, 10.0);
 	rmSetAreaCoherence(areaID, 1.0);
 	rmSetAreaWarnFailure(areaID, false);
 

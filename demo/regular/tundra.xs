@@ -4,7 +4,7 @@
 ** Last edit: 26/03/2021
 */
 
-include "rmx 5-0-0.xs";
+include "rmx.xs";
 
 string terrainTundraPool = "Tundra Pool";
 string objectTundraTree = "Tundra Tree";
@@ -277,7 +277,7 @@ void main() {
 	// Close settlement.
 	enableFairLocTwoPlayerCheck();
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		addFairLocConstraint(avoidCorner);
 		addFairLoc(65.0, 80.0, false, true, 60.0, 12.0, 12.0);
 	} else {
@@ -290,7 +290,7 @@ void main() {
 
 	enableFairLocTwoPlayerCheck();
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		addFairLoc(70.0, 100.0, true, false, 80.0, 12.0, 12.0, false, gameHasTwoEqualTeams());
 	} else {
 		addFairLoc(80.0, 100.0, true, false, 70.0, 12.0, 12.0, false, gameHasTwoEqualTeams());
@@ -425,7 +425,7 @@ void main() {
 	rmAddObjectDefConstraint(bonusGoldID, avoidTowerLOS);
 	rmAddObjectDefConstraint(bonusGoldID, avoidImpassableLand);
 	rmAddObjectDefConstraint(bonusGoldID, farAvoidSettlement);
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		rmAddObjectDefConstraint(bonusGoldID, avoidCorner);
 	}
 

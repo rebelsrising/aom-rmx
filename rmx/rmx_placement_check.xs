@@ -1,7 +1,7 @@
 /*
 ** Spawn checking for non-mirrored object IDs and proto names.
 ** RebelsRising
-** Last edit: 14/04/2021
+** Last edit: 20/03/2022
 **
 ** You have two options to verify placement:
 **

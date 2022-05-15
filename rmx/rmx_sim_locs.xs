@@ -1,7 +1,7 @@
 /*
 ** Similar location generation.
 ** RebelsRising
-** Last edit: 07/03/2021
+** Last edit: 20/03/2022
 */
 
 include "rmx_fair_locs.xs";
@@ -985,7 +985,7 @@ void addSimLocWithPrevConstraints(float minDist = 0.0, float maxDist = -1.0, flo
 		}
 	}
 
-	addSimLoc(minDist, maxDist, areaDist, distX, distZ, inPlayerArea, inTeamArea, insideOut, isSquare, simLocID);
+	addSimLoc(minDist, maxDist, areaDist, distX, distZ, inPlayerArea, inTeamArea, isSquare, insideOut, simLocID);
 }
 
 /*
@@ -1373,9 +1373,9 @@ bool buildSimLoc(int simLocID = -1, int player = 0) {
 
 	rmSetAreaLocation(areaID, getSimLocX(simLocID, player), getSimLocZ(simLocID, player));
 
-	rmSetAreaSize(areaID, rmXMetersToFraction(0.1));
-	//rmSetAreaTerrainType(areaID, "HadesBuildable1");
-	//rmSetAreaBaseHeight(areaID, 10.0);
+	rmSetAreaSize(areaID, areaRadiusMetersToFraction(3.0));
+	// rmSetAreaTerrainType(areaID, "HadesBuildable1");
+	// rmSetAreaBaseHeight(areaID, 10.0);
 	rmSetAreaCoherence(areaID, 1.0);
 	rmSetAreaWarnFailure(areaID, false);
 

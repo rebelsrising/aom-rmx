@@ -1,7 +1,7 @@
 /*
 ** MEDITERRANEAN MIRROR
 ** RebelsRising
-** Last edit: 09/03/2021
+** Last edit: 14/05/2022
 */
 
 include "rmx.xs";
@@ -13,7 +13,7 @@ void main() {
 	rmxInit("Mediterranean X");
 
 	// Set size.
-	int mapSize = getStandardMapDimInMeters(8250);
+	int axisLength = getStandardMapDimInMeters(8250);
 
 	// Set mirror mode.
 	setMirrorMode(cMirrorPoint);
@@ -27,7 +27,7 @@ void main() {
 	}
 
 	// Initialize map.
-	initializeMap("GrassDirt25", mapSize);
+	initializeMap("GrassDirt25", axisLength);
 
 	// Place players.
 	if(cNonGaiaPlayers < 7) {
@@ -325,7 +325,7 @@ void main() {
 	// Close settlement.
 	addFairLocConstraint(tcAvoidWater);
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		addFairLocConstraint(avoidCorner);
 		addFairLoc(60.0, 80.0, false, true, 65.0, 12.0, 12.0);
 	} else {
@@ -337,7 +337,7 @@ void main() {
 	addFairLocConstraint(avoidTowerLOS);
 	addFairLocConstraint(tcAvoidWater);
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		addFairLoc(70.0, 120.0, true, false, 65.0, 12.0, 12.0);
 	} else if(cNonGaiaPlayers < 9) {
 		addFairLoc(80.0, 120.0, true, false, 75.0, 12.0, 12.0, false, false, true);
@@ -442,7 +442,7 @@ void main() {
 	progress(0.8);
 
 	// Create bonus island.
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		int bonusIslandID = rmCreateArea("bonus island");
 		rmSetAreaSize(bonusIslandID, rmAreaTilesToFraction(500));
 		rmSetAreaLocation(bonusIslandID, 0.5, 0.5);
@@ -522,7 +522,7 @@ void main() {
 	int altFarFishID = rmCreateObjectDef("far fish alt");
 	rmAddObjectDefItem(altFarFishID, "Fish - Mahi", 3, 5.0);
 
-	placeFarObjectMirrored(farFishID, false, numFarFish, 10.0, altFarFishID);
+	placeFarObjectMirrored(farFishID, false, numFarFish, 10.0, -1.0, altFarFishID);
 
 	// Bonus fish.
 	int numBonusFish = 1 + cNonGaiaPlayers / 2;
@@ -536,7 +536,7 @@ void main() {
 	int altBonusFishID = rmCreateObjectDef("bonus fish alt");
 	rmAddObjectDefItem(altBonusFishID, "Fish - Perch", 2, 4.0);
 
-	placeFarObjectMirrored(bonusFishID, false, numBonusFish, 10.0, altBonusFishID);
+	placeFarObjectMirrored(bonusFishID, false, numBonusFish, 10.0, -1.0, altBonusFishID);
 
 	// Center fish.
 	int centerFishID = rmCreateObjectDef("center fish");
@@ -548,7 +548,7 @@ void main() {
 
 	progress(0.9);
 
-	// Relics (non mirrored).
+	// Relics (non-mirrored).
 	placeObjectInPlayerSplits(relicID);
 
 	// Random trees.

@@ -4,7 +4,7 @@
 ** Last edit: 26/03/2021
 */
 
-include "rmx 5-0-0.xs";
+include "rmx.xs";
 
 string terrainMarshPool = "Marsh Pool";
 string terrainMarshReplacement = "RiverMarshA";
@@ -128,7 +128,7 @@ void main() {
 	int avoidPredator = createTypeDistConstraint("AnimalPredator", 40.0);
 
 	// Loosen constraints for anything but 1v1 as player areas become very small.
-	if(cNonGaiaPlayers > 2) { // 4 players is also problematic.
+	if(gameIs1v1() == false) { // 4 players is also problematic.
 		// avoidHuntable = createTypeDistConstraint("Huntable", 30.0);
 		avoidHerdable = createTypeDistConstraint("Herdable", 20.0);
 		// avoidPredator = createTypeDistConstraint("AnimalPredator", 20.0);
@@ -360,7 +360,7 @@ void main() {
 	int numBonusIsland = 0;
 	float bonusIslandSize = rmAreaTilesToFraction(2800);
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		numBonusIsland = 5;
 	} else if(cNonGaiaPlayers < 5) {
 		numBonusIsland = 4;
@@ -449,7 +449,7 @@ void main() {
 
 	rmBuildConnection(teamShallowsID);
 	rmBuildConnection(shallowsID);
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		rmBuildConnection(extraShallowsID);
 	}
 
@@ -521,13 +521,13 @@ void main() {
 		addFairLocConstraint(farAvoidImpassableLand);
 		addFairLocConstraint(shortAvoidPlayer); // Was: mediumAvoidPlayer.
 
-		if(cNonGaiaPlayers > 2 && cNonGaiaPlayers < 9 && i < 2) {
+		if(gameIs1v1() == false && cNonGaiaPlayers < 9 && i < 2) {
 			// addFairLocConstraint(avoidAllyConnection);
 		}
 
 		enableFairLocTwoPlayerCheck();
 
-		if(cNonGaiaPlayers < 3) {
+		if(gameIs1v1()) {
 			addFairLoc(70.0, 95.0, true, false, 80.0 - 5.0 * i, 12.0, 12.0, true);
 		} else if(cNonGaiaPlayers < 5) {
 			addFairLoc(70.0, 95.0 + 5.0 * i, true, true, 70.0 - 10.0 * i, 12.0, 12.0, false, gameHasTwoEqualTeams() && i < 1);
@@ -547,7 +547,7 @@ void main() {
 	}
 
 	// Create areas and place settlements.
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		for(i = 1; < cPlayers) {
 			int settlementAreaID = rmCreateArea("far settlement area " + i);
 			rmSetAreaLocation(settlementAreaID, getFairLocX(1, i), getFairLocZ(1, i));
@@ -570,7 +570,7 @@ void main() {
 	addFairLocConstraint(avoidTowerLOS);
 	addFairLocConstraint(farAvoidImpassableLand);
 
-	// if(cNonGaiaPlayers < 3) {
+	// if(gameIs1v1()) {
 		// addFairLocConstraint(avoidCorner);
 	// } else {
 		// addFairLocConstraint(avoidAllyConnection);
@@ -622,7 +622,7 @@ void main() {
 	int farGoldID = -1;
 	int bonusGoldID = -1;
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		// 1v1 gold.
 		// Medium gold.
 		numMediumGold = rmRandInt(1, 2);
@@ -870,7 +870,7 @@ void main() {
 
 	addSimLocWithPrevConstraints(50.0, 90.0, avoidHuntDist, 8.0, 8.0);
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		createSimLocs("player bonus hunt");
 
 		placeObjectAtSimLoc(playerBonusHunt1ID, false, 1);

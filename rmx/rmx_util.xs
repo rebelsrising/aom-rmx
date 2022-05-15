@@ -1,7 +1,7 @@
 /*
 ** Conversions, scaling, randomization, constraints, player placement, and core areas.
 ** RebelsRising
-** Last edit: 16/10/2021
+** Last edit: 14/05/2022
 */
 
 include "rmx_core.xs";
@@ -10,6 +10,14 @@ include "rmx_math.xs";
 /************
 * CONSTANTS *
 ************/
+
+extern const int cPlayerPlacementUnplaced = -1;
+extern const int cPlayerPlacementCircle = 0;
+extern const int cPlayerPlacementSquare = 1;
+extern const int cPlayerPlacementLine = 2;
+extern const int cPlayerPlacementTeamCircle = 3;
+extern const int cPlayerPlacementTeamLine = 4;
+extern const int cPlayerPlacementMixed = 5;
 
 extern const string cSplitClassName = "rmx virtual split";
 extern const string cTeamSplitClassName = "rmx virtual team split";
@@ -23,6 +31,12 @@ extern const string cFakeTeamSplitName = "rmx fake team split";
 extern const string cCenterlineName = "rmx centerline";
 extern const string cCenterName = "rmx center";
 extern const string cCornerName = "rmx corner";
+
+// Don't export these as they are only used for generated labels (should never be used when referencing).
+const string cClassName = "rmx class";
+const string cAreaName = "rmx area";
+const string cConnectionName = "rmx connection";
+const string cObjectName = "rmx object";
 
 /*********
 * ARRAYS *
@@ -91,6 +105,8 @@ void setPlayerTeamOffsetAngle(int t = 0, float a = 0) {
 * TYPE CONVERSIONS *
 *******************/
 
+// Feel free to use those or add more if you need them.
+
 /*
 ** Convets a bool to a string.
 **
@@ -107,7 +123,22 @@ string boolToString(bool b = true) {
 }
 
 /*
-** Convets an int to a float (I often prefer to use 1.0 * ... directly instead of this).
+** Convets a bool to an int.
+**
+** @param b: the bool to convert
+**
+** @returns: 1 if b is true, 0 otherwise
+*/
+int boolToInt(bool b = true) {
+	if(b) {
+		return(1);
+	}
+
+	return(0);
+}
+
+/*
+** Convets an int to a float (I usually prefer to use 0.0 + ... directly instead of this).
 **
 ** @param i: the int to convert
 **
@@ -139,24 +170,57 @@ float dimFactorZ = 1.0;
 // "Constants" that are set via setMapSize() so we don't have to calculate them over and over again.
 float xMeters = 0.0;
 float zMeters = 0.0;
+float diagonalRadiusMeters = 0.0;
+float cornerRadiusMeters = 0.0;
 
 /*
-** Shortcut to the most common function used to determine the length of the x/z dimensions.
+** @DEPRECATED: New maps should use getMapDimMeters() instead, where the player tile input is not internally scaled
 **
-** @param playerTiles: the number of tiles to use per player
+** Default function to determine the axis length of maps according to the formula (and defaults) used by most ES maps.
+**
+** @param playerTiles: the number of tiles to use per player (may be scaled internally by tileSideLengthMeters)
 ** @param tileDivisor: the divisior used to further adjust the tile value (default 0.9, set to 1.0 on some maps)
-** @param preFactor: the factor to apply after calculating the sqrt (default 2.0)
-** @param sizeFactor: the factor used to scale the map (normal/large/...); used as factor with sizeFactor^cMapSize
-** @param playerOverride: overrides cNonGaiaPlayers if set
+** @param tileSideLengthMeters: the factor to transform tiles into meters (should be 2.0 since 1 tile = 2 meters, some ES maps use different values here)
+** @param sizeScaleFactor: the factor used to scale the map (normal/large/...); used as factor with sizeScaleFactor^cMapSize
+** @param numPlayersOverride: overrides cNonGaiaPlayers if set
 **
-** @returns: the calculated map size (to be used as meters)
+** @returns: the calculated axis length in meters (not tiles!)
 */
-float getStandardMapDimInMeters(int playerTiles = 7500, float tileDivisor = 0.9, float preFactor = 2.0, float sizeFactor = 1.3, int playerOverride = -1) {
-	if(playerOverride < 0) {
-		playerOverride = cNonGaiaPlayers;
+float getStandardMapDimInMeters(int playerTiles = 7500, float tileDivisor = 0.9, float tileSideLengthMeters = 2.0, float sizeScaleFactor = 1.3, int numPlayersOverride = -1) {
+	if(numPlayersOverride < 0) {
+		numPlayersOverride = cNonGaiaPlayers;
 	}
 
-	return(preFactor * sqrt(playerOverride * (pow(sizeFactor, cMapSize) * playerTiles) / tileDivisor));
+	return(tileSideLengthMeters * sqrt(numPlayersOverride * (pow(sizeScaleFactor, cMapSize) * playerTiles) / tileDivisor));
+}
+
+/*
+** Determines the length of the map axes in meters based on the number of tiles to use per player.
+** Note that the default map size for most ES maps is 8333.
+** This is due to most of the original ES maps dividing the number of player tiles by 0.9 (7500 / 0.9 = 8333).
+** 8500 player tiles are probably a good default (negligible ~1% longer axes).
+**
+** @param playerTiles: the number of tiles to use per player (1 tile = 2x2 meters)
+** @param sizeScaleFactor: the factor used to scale the map (normal/large/...); used as factor with sizeScaleFactor^cMapSize
+** @param numPlayersOverride: overrides cNonGaiaPlayers if set
+**
+** @returns: the calculated axis length in meters (not tiles!)
+*/
+float getMapDimMeters(int playerTiles = 8500, float sizeScaleFactor = 1.3, int numPlayersOverride = -1) {
+	if(numPlayersOverride < 0) {
+		numPlayersOverride = cNonGaiaPlayers;
+	}
+
+	return(2.0 * sqrt(numPlayersOverride * playerTiles * pow(sizeScaleFactor, cMapSize)));
+}
+
+/*
+** Returns the distance between opposing corners in meters.
+**
+** @returns: distance from one corner to its opposing counterpart in meters
+*/
+float getMapDiagonalInMeters() {
+	return(diagonalRadiusMeters);
 }
 
 /*
@@ -165,23 +229,34 @@ float getStandardMapDimInMeters(int playerTiles = 7500, float tileDivisor = 0.9,
 ** @returns: distance from center to corner in meters
 */
 float getCornerRadiusInMeters() {
-	return(sqrt(sq(0.5 * xMeters) + sq(0.5 * zMeters)));
+	return(cornerRadiusMeters);
+}
+
+/**
+** Returns the area of the map in meters.
+**
+** @returns: the area of the map in meters
+*/
+float getMapAreaInMeters() {
+	return(xMeters * zMeters);
 }
 
 /*
 ** Has to be used instead of rmSetMapSize() and rmTerrainInitialize().
 **
-** The reason we have two factors (dimFactorX and dimFactorZ is that we can always easily shorten the longer side.
+** The reason we have two factors (dimFactorX and dimFactorZ) is that we can always easily shorten the longer side.
 ** This way we can stick to the distances we are used to (in meters), even in rectangular maps.
 **
 ** The x/z dimension length will be converted to integers if provided as float,
 ** since the argument type overrides the type in the function signature in xs.
 **
-** @param terrain: the type of terrain to initialize; "Water" for initializing to water
+** @param terrain: the type of terrain to initialize
 ** @param x0: x dimension in meters
 ** @param z0: z dimension in meters
+** @param isWater: whether to initialize water instead of land; takes the terrain parameter as texture
+** @param baseHeight: the base height of the terrain, defaults to 2.0 for land and 1.0 for water
 */
-void initializeMap(string terrain = "Water", int x0 = 0, int z0 = -1) {
+void initializeMap(string terrain = "GrassA", int x0 = 0, int z0 = -1, bool isWater = false, float baseHeight = NINF) {
 	// Force conversion to int if parameters were provided as floats (xs doesn't convert them to int despite the function signature).
 	int x = x0;
 	int z = z0;
@@ -192,10 +267,28 @@ void initializeMap(string terrain = "Water", int x0 = 0, int z0 = -1) {
 
 	rmSetMapSize(x, z);
 
-	rmTerrainInitialize(terrain);
+	if(isWater) {
+		// Default sea level to 1.0 if unspecified.
+		if(baseHeight == NINF) {
+			baseHeight = 1.0;
+		}
+
+		rmSetSeaLevel(baseHeight);
+		rmSetSeaType(terrain);
+		rmTerrainInitialize("Water");
+	} else {
+		// Default terrain height to 2.0 if unspecified.
+		if(baseHeight == NINF) {
+			baseHeight = 2.0;
+		}
+
+		rmTerrainInitialize(terrain, baseHeight);
+	}
 
 	xMeters = rmXFractionToMeters(1.0);
 	zMeters = rmZFractionToMeters(1.0);
+	diagonalRadiusMeters = sqrt(sq(xMeters) + sq(zMeters));
+	cornerRadiusMeters = 0.5 * diagonalRadiusMeters;
 
 	if(x >= z) {
 		// X longer dimension.
@@ -254,13 +347,22 @@ bool isXLargerZ() {
 	return(xMeters > zMeters);
 }
 
-/**
-** Returns the area of the map in meters.
+/*
+** Checks if the z dimension of this map is larger than the x dimension.
 **
-** @returns: the area of the map in meters
+** @returns: true if the z dimension is larger, false otherwise
 */
-float getMapAreaInMeters() {
-	return(getFullXMeters() * getFullZMeters());
+bool isZLargerX() {
+	return(xMeters < zMeters);
+}
+
+/*
+** Checks if the map dimensions are equal.
+**
+** @returns: true if the map is square, false otherwise
+*/
+bool isMapSquare() {
+	return(xMeters == zMeters);
 }
 
 /*
@@ -288,7 +390,7 @@ float fitToMap(float x = 0.0) {
 
 /*
 ** Converts/stretches a square radius (as used by the original placement functions) to a circular one.
-** Useful to adjust the maximum radius of an object if you want to use the original ES ranges, but use it with circular placement.
+** Useful to adjust the maximum radius of an object if you want to use the original ES ranges, but use it with circular placement (and radii).
 **
 ** @param r: the old radius
 **
@@ -310,7 +412,21 @@ float squaredToCircularRadius(float r = 0.0) {
 ** @returns: the wrapped radius in meters
 */
 float areaRadiusMetersToFraction(float r = 0.0) {
-	return(sq(r) * PI / (getFullXMeters() * getFullZMeters()));
+	return((PI * sq(r)) / (getFullXMeters() * getFullZMeters()));
+}
+
+/*
+** Calculates the fraction of the size of an area in square meters in relation to the whole map size.
+** Convenience function and replacement for rmAreaTilesToFraction() to avoid using tiles,
+** as they are simply twice as long as meters (meaning that this function will return 1/4 of the value
+** rmAreaTilesToFraction() will return for the same input).
+**
+** @param a: the size of the area in square meters
+**
+** @returns: the fraction of the entire map the area covers
+*/
+float areaSquareMetersToFraction(float a = 0.0) {
+	return((0.0 + a) / (getFullXMeters() * getFullZMeters()));
 }
 
 /*
@@ -453,12 +569,45 @@ int randLargeInt(int x = 0, int y = 0) {
 }
 
 /*
+** Calculates a random integer from either of two intervals for a given chance.
+**
+** @param aStart: start of the first interval
+** @param aEnd: end of the first interval
+** @param bStart: start of the second interval
+** @param bEnd: end of the second interval
+** @param pct: the chance to pick the first interval (1 - pct is the chance for picking the second interval)
+**
+** @returns: the randomized integer
+*/
+int randRanges(int aStart = 0, int aEnd = 0, int bStart = 0, int bEnd = 0, float pct = 0.5) {
+	if(randChance(pct)) {
+		return(rmRandInt(aStart, aEnd));
+	}
+
+	return(rmRandInt(bStart, bEnd));
+}
+
+/*
+** Calculates a random integer from either an interval or simple returning a value for a given chance.
+**
+** @param start: start of the first interval
+** @param end: end of the first interval
+** @param val: the value representing the second option to randomize from (along with the interval)
+** @param pct: the chance to pick the first interval (1 - pct is the chance for picking the second interval)
+**
+** @returns: the randomized integer
+*/
+int randSingleOrRange(int start = 0, int end = 0, int val = 1, float pct = 0.5) {
+	return(randRanges(start, end, val, val, pct));
+}
+
+/*
 ** Calculates a random angle in [-PI, PI].
 **
 ** @returns: the randomized angle in radians
 */
 float randRadian() {
-	return(rmRandFloat(0.0 - PI, PI));
+	return(rmRandFloat(NPI, PI));
 }
 
 /*
@@ -625,6 +774,36 @@ float getZFromPolarForPlayer(int player = 0, float radius = 0.0, float angle = 0
 * PLAYER PLACEMENT *
 *******************/
 
+int playerPlacement = cPlayerPlacementUnplaced;
+
+/*
+** Returns the player placement style (circular, square, ...), i.e., one of the constants defined at the top of this file.
+**
+** @returns: the player placement style
+*/
+int getPlayerPlacementStyle() {
+	return(playerPlacement);
+}
+
+/*
+** Updates the placement style, must be called by placement functions.
+**
+** @param newPlacementStyle: the style to set for player placement (mixed will be automatically determined).
+*/
+void updatePlacementStyle(int newPlacementStyle = cPlayerPlacementUnplaced) {
+	if(playerPlacement == newPlacementStyle) {
+		// No changes needed.
+		return;
+	}
+
+	if(newPlacementStyle != cPlayerPlacementUnplaced && playerPlacement != cPlayerPlacementUnplaced) {
+		// Only set mixed if players have already been placed differently and we're not resetting via cPlayerPlacementUnplaced.
+		playerPlacement = cPlayerPlacementMixed;
+	} else {
+		playerPlacement = newPlacementStyle;
+	}
+}
+
 /*
 ** Calculates the angles of the teams (i.e., the direction the team is facing towards the center).
 ** This is currently not ideal when placing teams separately (e.g. on Anatolia) as this is called multiple times.
@@ -697,6 +876,7 @@ float placePlayersInCircle(float minRadius = 0.0, float maxRadius = -1.0, float 
 	float radius = rmRandFloat(minRadius, maxRadius);
 
 	printDebug("Player placement radius: " + radius, cDebugTest);
+	printDebug("Team spacing: " + spacing, cDebugTest);
 
 	// Calculate the segment to append after every iteration. Regular = within team, last = before next team gets placed (due to spacing).
 	float reg = spacing * ((2.0 * PI) / cNonGaiaPlayers);
@@ -712,7 +892,7 @@ float placePlayersInCircle(float minRadius = 0.0, float maxRadius = -1.0, float 
 		angle = randRadian();
 	}
 
-	float a = angle; // Just to make sure because 0 is interpreted as an int if we use the parameter variable.
+	float a = angle; // Just to make sure because 0 can be interpreted as an int if we use the parameter variable.
 
 	int player = 1;
 
@@ -737,6 +917,7 @@ float placePlayersInCircle(float minRadius = 0.0, float maxRadius = -1.0, float 
 	}
 
 	calcPlayerTeamOffsetAngles();
+	updatePlacementStyle(cPlayerPlacementCircle);
 
 	// Return the randomed radius in case it's needed in the map script.
 	return(radius);
@@ -797,6 +978,7 @@ void placeTeamInCircle(int teamID = -1, float radius = 0.0, float range = 1.0, f
 		player++;
 	}
 
+	updatePlacementStyle(cPlayerPlacementTeamCircle);
 	calcPlayerTeamOffsetAngles();
 }
 
@@ -821,7 +1003,8 @@ float placePlayersInSquare(float minRadius = 0.0, float maxRadius = -1.0, float 
 
 	float radius = rmRandFloat(minRadius, maxRadius);
 
-	printDebug("Placement radius: " + radius, cDebugTest);
+	printDebug("Player placement radius: " + radius, cDebugTest);
+	printDebug("Team spacing: " + spacing, cDebugTest);
 
 	// Edge distance in meters.
 	float edgeDist = (0.5 * getFullXMeters() - rmXFractionToMeters(radius)) * getDimFacX();
@@ -948,9 +1131,53 @@ float placePlayersInSquare(float minRadius = 0.0, float maxRadius = -1.0, float 
 
 	}
 
+	updatePlacementStyle(cPlayerPlacementSquare);
 	calcPlayerTeamOffsetAngles();
 
 	return(radius);
+}
+
+/*
+** Places all players in a line.
+**
+** @param x1: x fraction of the placement starting location
+** @param z1: z fraction of the placement starting location
+** @param x2: x fraction of the placement ending location
+** @param z2: z fraction of the placement ending location
+** @param spacing: spacing modifier; 1.0 -> equidistant spacing between players, < 1.0 -> teams closer together
+*/
+void placePlayersInLine(float x1 = 0.0, float z1 = 0.0, float x2 = 0.0, float z2 = 0.0, float spacing = 1.0) {
+	float xDistSameTeam = (x2 - x1) / (cNonGaiaPlayers - 1) * spacing;
+	float zDistSameTeam = (z2 - z1) / (cNonGaiaPlayers - 1) * spacing;
+
+	float xDistDiffTeam = ((x2 - x1) - (xDistSameTeam * (cNonGaiaPlayers - cTeams))) / (cTeams - 1);
+	float zDistDiffTeam = ((z2 - z1) - (zDistSameTeam * (cNonGaiaPlayers - cTeams))) / (cTeams - 1);
+
+	float x = x1;
+	float z = z1;
+	int player = 1;
+
+	for(i = 0; < cTeams) {
+		for(j = 0; < getNumberPlayersOnTeam(i)) {
+			// Place player and set angle.
+			rmPlacePlayer(getPlayer(player), x, z);
+			setPlayerAngle(player, getAngleFromCartesian(x, z, 0.5, 0.5));
+			player++;
+
+			if(j == getNumberPlayersOnTeam(i) - 1) {
+				// New team next, larger gap.
+				x = x + xDistDiffTeam;
+				z = z + zDistDiffTeam;
+			} else {
+				// Same team next, smaller gap if team spacing has been set.
+				x = x + xDistSameTeam;
+				z = z + zDistSameTeam;
+			}
+		}
+	}
+
+	updatePlacementStyle(cPlayerPlacementTeamLine);
+	calcPlayerTeamOffsetAngles();
 }
 
 /*
@@ -993,49 +1220,103 @@ void placeTeamInLine(int teamID = -1, float x1 = 0.0, float z1 = 0.0, float x2 =
 		z = z + zDist;
 	}
 
+	updatePlacementStyle(cPlayerPlacementTeamLine);
 	calcPlayerTeamOffsetAngles();
 }
 
+/*********************
+* DEFINITION UTILITY *
+*********************/
+
 /*
-** Places all players in a line.
-**
-** @param x1: x fraction of the placement starting location
-** @param z1: z fraction of the placement starting location
-** @param x2: x fraction of the placement ending location
-** @param z2: z fraction of the placement ending location
-** @param spacing: spacing modifier; 1.0 -> equidistant spacing between players, < 1.0 -> teams closer together
+ * Shortcuts to avoid having to specify a label every time upon class, area, connection, or object creation.
+ * Note that you usually cannot use those to refer by rmAreaID() or rmClassID() later on, as the labels are not tracked.
+ * The framework itself generally doesn't use these, as all entities are specifically labeled for clarity.
 */
-void placePlayersInLine(float x1 = 0.0, float z1 = 0.0, float x2 = 0.0, float z2 = 0.0, float spacing = 1.0) {
-	float xDistSameTeam = (x2 - x1) / (cNonGaiaPlayers - 1) * spacing;
-	float zDistSameTeam = (z2 - z1) / (cNonGaiaPlayers - 1) * spacing;
 
-	float xDistDiffTeam = ((x2 - x1) - (xDistSameTeam * (cNonGaiaPlayers - cTeams))) / (cTeams - 1);
-	float zDistDiffTeam = ((z2 - z1) - (zDistSameTeam * (cNonGaiaPlayers - cTeams))) / (cTeams - 1);
+int classCount = 0;
+int areaCount = 0;
+int connectionCount = 0;
+int objectCount = 0;
 
-	float x = x1;
-	float z = z1;
-	int player = 1;
-
-	for(i = 0; < cTeams) {
-		for(j = 0; < getNumberPlayersOnTeam(i)) {
-			// Place player and set angle.
-			rmPlacePlayer(getPlayer(player), x, z);
-			setPlayerAngle(player, getAngleFromCartesian(x, z, 0.5, 0.5));
-			player++;
-
-			if(j == getNumberPlayersOnTeam(i) - 1) {
-				// New team next, larger gap.
-				x = x + xDistDiffTeam;
-				z = z + zDistDiffTeam;
-			} else {
-				// Same team next, smaller gap if team spacing has been set.
-				x = x + xDistSameTeam;
-				z = z + zDistSameTeam;
-			}
-		}
+/*
+** Wrapper for class definition without needing to specify a label.
+**
+** @param s: the name of the class (generated if defaulted)
+**
+** @returns: the ID of the defined class
+*/
+int defineClass(string s = "") {
+	if(s == "") {
+		classCount++;
+		return(rmDefineClass(cClassName + " " + classCount));
 	}
 
-	calcPlayerTeamOffsetAngles();
+	return(rmDefineClass(s));
+}
+
+/*
+** Wrapper for area creation without needing to specify a label.
+**
+** @param s: the name of the area (generated if defaulted)
+**
+** @returns: the ID of the created area
+*/
+int createArea(string s = "") {
+	if(s == "") {
+		areaCount++;
+		return(rmCreateArea(cAreaName + " " + areaCount));
+	}
+
+	return(rmCreateArea(s));
+}
+
+/*
+** Wrapper for area creation in a super area without needing to specify a label.
+**
+** @param superAreaID: the ID of the parent area
+** @param s: the name of the area (generated if defaulted)
+**
+** @returns: the ID of the created area
+*/
+int createAreaWithSuperArea(int superAreaID = -1, string s = "") {
+	if(superAreaID < 0) {
+		return(createArea(s));
+	}
+
+	if(s == "") {
+		areaCount++;
+		return(rmCreateArea(cAreaName + " " + areaCount, superAreaID));
+	}
+
+	return(rmCreateArea(s, superAreaID));
+}
+
+/*
+** Wrapper for connection creation without needing to specify a label.
+**
+** @param s: the name of the connection (generated if defaulted)
+**
+** @returns: the ID of the created connection
+*/
+int createConnection(string s = "") {
+	if(s == "") {
+		connectionCount++;
+		return(rmCreateConnection(cConnectionName + " " + connectionCount));
+	}
+
+	return(rmCreateConnection(s));
+}
+
+/*
+** Wrapper for object creation without needing to specify a label.
+** Note that this should not be used if you want to verify placement (see createObjectDefVerify()).
+**
+** @returns: the ID of the created object
+*/
+int createObjectDef() {
+	objectCount++;
+	return(rmCreateObjectDef(cObjectName + " " + objectCount));
 }
 
 /*********************
@@ -1314,6 +1595,20 @@ int createTerrainMaxDistConstraint(string type = "", bool passable = false, floa
 /*********************
 * OBJECT DEF UTILITY *
 *********************/
+
+/*
+** Computes the cluster distance (last argument of rmAddObjecDefItem()).
+** This is the maximum distance items can be from the placement location of the object definition.
+** This function will not set it larger than it has to be for 1x1 tile units (like hunt or human soldiers).
+** Do NOT use this for fish, gold, etc.!
+**
+** @param amount: the number of elements in the item to add to the object
+**
+** @returns: the computed minimal cluster distance
+*/
+float getClusterDist(int amount = 0) {
+	return(ceil(sqrt(amount)));
+}
 
 /*
 ** Sets the min/max distance of an object at the same time.

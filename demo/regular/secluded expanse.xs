@@ -251,7 +251,7 @@ void main() {
 	int settlementID = rmCreateObjectDef("settlements");
 	rmAddObjectDefItem(settlementID, "Settlement", 1, 0.0);
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		addFairLocConstraint(avoidCorner);
 	} else {
 		addFairLocConstraint(avoidTowerLOS);
@@ -269,7 +269,7 @@ void main() {
 
 	enableFairLocTwoPlayerCheck();
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		addFairLoc(60.0, 90.0, true, true, 80.0, 12.0, 12.0);
 	} else if(cNonGaiaPlayers < 9) {
 		if(randChance()) {
@@ -406,7 +406,7 @@ void main() {
 
 	enableSimLocTwoPlayerCheck();
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		setSimLocInterval(10.0);
 	}
 

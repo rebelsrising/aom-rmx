@@ -1,10 +1,10 @@
 /*
 ** SAVANNAH
 ** RebelsRising
-** Last edit: 26/03/2021
+** Last edit: 09/01/2022
 */
 
-include "rmx 5-0-0.xs";
+include "rmx.xs";
 
 void main() {
 	progress(0.0);
@@ -261,7 +261,7 @@ void main() {
 	// Close settlement.
 	enableFairLocTwoPlayerCheck();
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		addFairLoc(60.0, 80.0, false, true, 60.0, 12.0, 12.0);
 	} else {
 		addFairLocConstraint(createClassDistConstraint(classStartingSettlement, 60.0));
@@ -271,7 +271,7 @@ void main() {
 	// Far settlement.
 	addFairLocConstraint(createClassDistConstraint(classStartingSettlement, 60.0));
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		setFairLocInterDistMin(70.0);
 
 		if(randChance(0.75)) {
@@ -319,7 +319,7 @@ void main() {
 	// Ponds.
 	int numPond = rmRandInt(2, 4);
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		numPond = 2;
 	}
 
@@ -501,7 +501,7 @@ void main() {
 
 	enableSimLocTwoPlayerCheck();
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		setSimLocInterval(10.0);
 	}
 
@@ -534,7 +534,7 @@ void main() {
 
 	enableSimLocTwoPlayerCheck();
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		setSimLocInterval(10.0);
 	}
 
@@ -565,14 +565,14 @@ void main() {
 
 	enableSimLocTwoPlayerCheck();
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		setSimLocInterval(10.0);
 	}
 
 	addSimLoc(75.0, 110.0, avoidHuntDist, 8.0, 8.0, false, false, true);
 
 	// If this fails, place it randomly in the player's area.
-	if(createSimLocs("bonus hunt 2", false) == false) {
+	if(placeObjectAtNewSimLocs(bonusHunt2ID, false, "bonus hunt 2") == false) {
 		applySimLocConstraintsToObject(bonusHunt2ID);
 		placeObjectInPlayerSplits(bonusHunt2ID);
 	}

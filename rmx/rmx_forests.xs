@@ -1,7 +1,7 @@
 /*
 ** Default mirrored forest generation.
 ** RebelsRising
-** Last edit: 07/03/2021
+** Last edit: 20/03/2022
 */
 
 include "rmx_areas.xs";
@@ -150,6 +150,9 @@ float forestMaxCoherence = 1.0;
 float forestMinRadius = 20.0;
 float forestMaxRadius = -1.0;
 
+float forestMinAngle = NPI;
+float forestMaxAngle = PI;
+
 // Constraint for self avoidance.
 int forestAvoidSelfID = -1;
 
@@ -244,6 +247,17 @@ void setForestSearchRadius(float minRadius = 20.0, float maxRadius = -1.0) {
 }
 
 /*
+** Sets a minimum and maximum angle in radians to consider when placing forests.
+**
+** @param minRadius: minimum angle in radians to randomize
+** @param maxRadius: maximum angle in radians to randomize
+*/
+void setForestSearchAngle(float minAngle = NPI, float maxAngle = PI) {
+	forestMinAngle = minAngle;
+	forestMaxAngle = maxAngle;
+}
+
+/*
 ** Resets forest settings (types, constraints, and search radius).
 */
 void resetForests() {
@@ -257,6 +271,7 @@ void resetForests() {
 	setForestParams();
 	setForestCoherence();
 	setForestSearchRadius();
+	setForestSearchAngle();
 	setForestAvoidSelf();
 	setForestMinRatio();
 }
@@ -296,6 +311,15 @@ float getForestLocRadius() {
 
 	// Consider using randLargeFloat here instead.
 	return(rmRandFloat(forestMinRadius, forestMaxRadius));
+}
+
+/*
+** Randomizes an angle from the specified range.
+**
+** @returns: the randomized forest angle
+*/
+float getForestLocAngle() {
+	return(rmRandFloat(forestMinAngle, forestMaxAngle));
 }
 
 /*
@@ -412,13 +436,13 @@ bool buildForestShape(int numBlobs = 0, int player = 0) {
 
 	// Randomize angle and radius.
 	float radius = getForestLocRadius();
-	float angle = randRadian();
+	float angle = getForestLocAngle();
 
 	int numTries = 0;
 
 	while(isForestLocValid(radius, angle, player) == false && numTries < 100) {
 		radius = getForestLocRadius();
-		angle = randRadian();
+		angle = getForestLocAngle();
 		numTries++;
 	}
 
@@ -479,7 +503,7 @@ int buildForests(int numForests = 0, float prog = 0.0, int player = 0, int numTr
 
 	// Prepare first iteration.
 	int numBlobs = rmRandInt(forestMinBlobs, forestMaxBlobs);
-	float coherence = rmRandInt(forestMinCoherence, forestMaxCoherence);
+	float coherence = rmRandFloat(forestMinCoherence, forestMaxCoherence);
 
 	// Build a random shape.
 	createRandomShape(numBlobs, coherence);
@@ -498,7 +522,7 @@ int buildForests(int numForests = 0, float prog = 0.0, int player = 0, int numTr
 
 		// Prepare for next iteration.
 		numBlobs = rmRandInt(forestMinBlobs, forestMaxBlobs);
-		coherence = rmRandInt(forestMinCoherence, forestMaxCoherence);
+		coherence = rmRandFloat(forestMinCoherence, forestMaxCoherence);
 
 		createRandomShape(numBlobs, coherence);
 	}
@@ -510,7 +534,7 @@ int buildForests(int numForests = 0, float prog = 0.0, int player = 0, int numTr
 ** Attempts to build a given number of forests around every player according to the previously specified parameters.
 ** The function iterates over the number of players in the team and places a forest for every player and its mirrored counterpart.
 **
-** If it should ever be necessary to verify how many forests very successfully built and for which pair of players, make a custom version of this function
+** If it should ever be necessary to verify how many forests were successfully built and for which pair of players, make a custom version of this function
 ** along with a data structure to store the return result of buildForests().
 **
 ** @param numForests: the number of forests to build

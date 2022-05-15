@@ -1,2 +1,2 @@
-<?xml version = "1.0" encoding = "UTF-8"?>
-<mapinfo details = "23734" imagepath = "ui\ui map marsh 256x256" displayNameID="23733" cannotReplace=""/>
+<?xml version="1.0" encoding="UTF-8"?>
+<mapinfo detailsText="A dangerous swamp surrounded by grassy hills. The center is full of huntable animals and relics." imagepath="ui\ui map marsh 256x256" displayName="Marsh" cannotReplace=""/>

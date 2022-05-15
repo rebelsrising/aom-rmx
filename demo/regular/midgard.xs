@@ -4,7 +4,7 @@
 ** Last edit: 26/03/2021
 */
 
-include "rmx 5-0-0.xs";
+include "rmx.xs";
 
 // Override forward/inside town center angles for better variations.
 
@@ -58,7 +58,7 @@ void main() {
 	initializeMap("Water", axisLength);
 
 	// Player placement.
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		placePlayersInCircle(0.25, 0.275);
 	} else {
 		placePlayersInCircle(0.275, 0.3);
@@ -298,13 +298,13 @@ void main() {
 		// Close settlement.
 		enableFairLocTwoPlayerCheck();
 
-		if(cNonGaiaPlayers > 2) {
+		if(gameIs1v1() == false) {
 			addFairLocConstraint(avoidTowerLOS);
 		}
 
 		addFairLocConstraint(settlementAvoidImpassableLand);
 
-		if(cNonGaiaPlayers < 3) {
+		if(gameIs1v1()) {
 			addFairLoc(60.0, 80.0, false, true, 70.0, 0.0, 0.0, true);
 		} else {
 			addFairLoc(60.0, 80.0, false, true, 55.0);
@@ -317,7 +317,7 @@ void main() {
 		enableFairLocTwoPlayerCheck();
 
 		// For anything but 1v1, the forward/backward variation has no impact because the map is so small.
-		if(cNonGaiaPlayers < 3) {
+		if(gameIs1v1()) {
 			if(settleBool) {
 				addFairLoc(70.0, 120.0, true, true, 70.0);
 			} else {
@@ -444,7 +444,7 @@ void main() {
 	float mediumWalrusMinDist = rmRandFloat(60.0, 90.0);
 	float mediumWalrusMaxDist = mediumWalrusMinDist + 15.0;
 
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		mediumWalrusMinDist = rmRandFloat(60.0, 80.0);
 		mediumWalrusMaxDist = mediumWalrusMinDist + 15.0;
 	}
@@ -467,7 +467,7 @@ void main() {
 	}
 
 	// Only verify for 1v1. Rarely fails to place in teamgames we have numBonusWalrus == 2, but since we have a lot anyway it doesn't matter.
-	int bonusWalrusID = createObjectDefVerify("bonus walrus", cNonGaiaPlayers < 3 || cDebugMode >= cDebugTest);
+	int bonusWalrusID = createObjectDefVerify("bonus walrus", gameIs1v1() || cDebugMode >= cDebugTest);
 	addObjectDefItemVerify(bonusWalrusID, "Walrus", rmRandInt(2, 5), 2.0);
 
 	rmAddObjectDefConstraint(bonusWalrusID, avoidAll);
@@ -477,7 +477,7 @@ void main() {
 	rmAddObjectDefConstraint(bonusWalrusID, createTerrainDistConstraint("Land", false, 1.0));
 	rmAddObjectDefConstraint(bonusWalrusID, createTerrainMaxDistConstraint("Water", true, 10.0));
 	// Let walrus avoid virtual centerline for fairer placement.
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		rmAddObjectDefConstraint(bonusWalrusID, createClassDistConstraint(classStartingSettlement, 90.0 - 15.0 * numBonusWalrus));
 		rmAddObjectDefConstraint(bonusWalrusID, createClassDistConstraint(classCenterline, 15.0));
 	} else {
@@ -513,7 +513,7 @@ void main() {
 		addObjectDefItemVerify(bonusHuntID, "Caribou", rmRandInt(4, 9), 2.0);
 	}
 	rmAddObjectDefConstraint(bonusHuntID, avoidAll);
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		rmAddObjectDefConstraint(bonusHuntID, createClassDistConstraint(classCenterline, 10.0));
 		rmAddObjectDefConstraint(bonusHuntID, createClassDistConstraint(classStartingSettlement, 70.0));
 	} else {

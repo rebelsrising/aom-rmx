@@ -1,7 +1,7 @@
 /*
 ** TUNDRA MIRROR
 ** RebelsRising
-** Last edit: 09/03/2021
+** Last edit: 14/05/2022
 */
 
 include "rmx.xs";
@@ -50,10 +50,10 @@ void main() {
 	}
 
 	// Set size.
-	int mapSize = getStandardMapDimInMeters();
+	int axisLength = getStandardMapDimInMeters();
 
 	// Initialize map.
-	initializeMap(terrainTundraA, mapSize);
+	initializeMap(terrainTundraA, axisLength);
 
 	// Place players.
 	if(cNonGaiaPlayers < 9) {
@@ -346,25 +346,6 @@ void main() {
 
 	progress(0.2);
 
-	// Areas.
-	initAreaClass();
-
-	setAreaWaterType(terrainTundraPool, 17.0, 9.0);
-
-	setAreaBlobs(4, 4);
-
-	setAreaAvoidSelf(60.0);
-	setAreaCoherence(-0.25);
-	setAreaSearchRadius(60.0, -1.0);
-
-	addAreaConstraint(createClassDistConstraint(classStartingSettlement, 70.0));
-	addAreaConstraint(avoidCenter);
-	addAreaConstraint(avoidBuildings);
-
-	buildAreas(min(cNonGaiaPlayers / 2, 2), 0.1);
-
-	progress(0.3);
-
 	// Settlements.
 	int settlementID = rmCreateObjectDef("settlements");
 	rmAddObjectDefItem(settlementID, "Settlement", 1, 0.0);
@@ -373,21 +354,19 @@ void main() {
 	int settlementAvoidCenter = createClassDistConstraint(classCenter, 10.0 + 0.5 * (tcDist - 2.0 * centerRadius));
 
 	// Close settlement.
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		addFairLocConstraint(avoidCorner);
 	} else {
 		addFairLocConstraint(avoidTowerLOS);
 	}
-	addFairLocConstraint(farAvoidPond);
 
 	addFairLoc(60.0, 80.0, false, true, 50.0, 12.0, 12.0);
 
 	// Far settlement.
-	addFairLocConstraint(farAvoidPond);
 	addFairLocConstraint(avoidTowerLOS);
 	addFairLocConstraint(settlementAvoidCenter);
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		setFairLocInterDistMin(75.0);
 		addFairLoc(60.0, 100.0, true, false, 65.0, 60.0, 60.0);
 	} else if(cNonGaiaPlayers < 5) {
@@ -397,6 +376,27 @@ void main() {
 	}
 
 	placeObjectAtNewFairLocs(settlementID, false, "settlements");
+
+	progress(0.3);
+
+	// Ponds.
+	initAreaClass();
+
+	setAreaWaterType(terrainTundraPool, 17.0, 9.0);
+
+	setAreaBlobs(4);
+
+	setAreaAvoidSelf(60.0);
+	setAreaCoherence(-0.25);
+	setAreaSearchRadius(60.0, -1.0);
+
+	addAreaConstraint(createClassDistConstraint(classStartingSettlement, 70.0));
+	addAreaConstraint(createSymmetricBoxConstraint(0.9));
+	addAreaConstraint(avoidCenter);
+	addAreaConstraint(avoidBuildings);
+	addAreaConstraint(createTypeDistConstraint("AbstractSettlement", 35.0));
+
+	buildAreas(min(cNonGaiaPlayers / 2, 2), 0.1);
 
 	progress(0.4);
 
@@ -494,7 +494,7 @@ void main() {
 	rmSetAreaCoherence(centerForestID, 1.0);
 	rmBuildArea(centerForestID);
 
-	// Relics (non mirrored).
+	// Relics (non-mirrored).
 	placeObjectInPlayerSplits(relicID);
 
 	// Random trees.

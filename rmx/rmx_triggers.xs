@@ -1,7 +1,7 @@
 /*
 ** Triggers for observer mode, merge mode, and balance rules.
 ** RebelsRising
-** Last edit: 09/03/2021
+** Last edit: 20/03/2022
 **
 ** Code style in this file is not consistent for the sake of readability when injecting code.
 **
@@ -1893,7 +1893,7 @@ void injectCmdHelp() {
 ** The command in the chat will get cleared by active toggles otherwise, as rules are iterated over sequentially in each pass.
 */
 void injectCmdMapReveal() {
-	for(i = cPlayers; < cPlayersObs) {
+	for(i = cPlayersMerged; < cPlayersObs) {
 		code("rule _toggle_map_reveal_" + getPlayer(i));
 		code("active");
 		code("{");
@@ -1902,7 +1902,7 @@ void injectCmdMapReveal() {
 			// Only do for observers.
 			code("if(trCurrentPlayer() == " + getPlayer(i) + ")");
 			code("{");
-				// Static variable rm holds state over calls of this rule.
+				// Static variable holds state over calls of this rule.
 				code("static bool mapRevealed" + getPlayer(i) + " = true;");
 
 				code("if(trChatHistoryContains(\"!m\", " + getPlayer(i) + "))");
@@ -2804,7 +2804,7 @@ void injectRainFix() {
 	for(i = 1; < cPlayers) {
 		int p = getPlayer(i);
 
-        if(rmGetPlayerCiv(p) == cCivRa) {
+		if(rmGetPlayerCiv(p) == cCivRa) {
 			// Global tech status variables.
 			code("int handAxeStatus" + p + " = cTechStatusUnobtainable;");
 			code("int bowSawStatus" + p + " = cTechStatusUnobtainable;");
@@ -2883,7 +2883,7 @@ void injectRainFix() {
 				code("xsSetContextPlayer(oldContext);");
 	        code("}");
 
-            code("rule _rain_enable_check_" + p);
+			code("rule _rain_enable_check_" + p);
 	        code("active");
 			code("highFrequency");
 	        code("{");
@@ -2916,6 +2916,6 @@ void injectRainFix() {
 				code("}");
 
 	        code("}");
-        }
-    }
+		}
+	}
 }

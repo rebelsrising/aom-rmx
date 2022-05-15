@@ -14,6 +14,10 @@ parser.add_argument('--out_path', '-o', type=str, nargs='?', default='out',
 args = parser.parse_args()
 
 
+def get_header():
+    return '// SOURCE: ' + args.src_path + '\n// COMPILED WITH THE RM X FRAMEWORK.\n'
+
+
 def get_dependencies(src_path, deps_path):
     # Read file.
     f = open(src_path)
@@ -45,6 +49,7 @@ def merge(includes, out_path):
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
 
     with open(out_path, 'w') as file:
+        file.write(get_header())
         for src_path in includes:
             with open(src_path, 'r') as src:
                 for line in src.readlines():

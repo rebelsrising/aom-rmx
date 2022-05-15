@@ -1,7 +1,7 @@
 /*
 ** OASIS MIRROR
 ** RebelsRising
-** Last edit: 09/03/2021
+** Last edit: 14/05/2022
 */
 
 include "rmx.xs";
@@ -24,10 +24,10 @@ void main() {
 	}
 
 	// Set size.
-	int mapSize = getStandardMapDimInMeters();
+	int axisLength = getStandardMapDimInMeters();
 
 	// Initialize map.
-	initializeMap("SandA", mapSize);
+	initializeMap("SandA", axisLength);
 
 	// Place players.
 	placePlayersInSquare(0.4);
@@ -150,7 +150,7 @@ void main() {
 	rmAddObjectDefConstraint(bonusGoldID, avoidEdge);
 	rmAddObjectDefConstraint(bonusGoldID, shortAvoidOasis);
 	rmAddObjectDefConstraint(bonusGoldID, avoidCenter);
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		rmAddObjectDefConstraint(bonusGoldID, createClassDistConstraint(classStartingSettlement, 80.0));
 	} else {
 		rmAddObjectDefConstraint(bonusGoldID, createClassDistConstraint(classStartingSettlement, 50.0));
@@ -238,15 +238,6 @@ void main() {
 	rmAddObjectDefConstraint(farPredatorsID, avoidPredator);
 
 	// Other objects.
-	// Relics.
-	int relicID = rmCreateObjectDef("relic");
-	rmAddObjectDefItem(relicID, "Relic", 1, 0.0);
-	rmAddObjectDefConstraint(relicID, avoidAll);
-	rmAddObjectDefConstraint(relicID, avoidEdge);
-	rmAddObjectDefConstraint(relicID, shortAvoidOasis);
-	rmAddObjectDefConstraint(relicID, createClassDistConstraint(classStartingSettlement, 80.0));
-	rmAddObjectDefConstraint(relicID, avoidRelic);
-
 	// Random trees 1.
 	int randomTree1ID = rmCreateObjectDef("random tree 1");
 	rmAddObjectDefItem(randomTree1ID, "Palm", 1, 0.0);
@@ -264,6 +255,15 @@ void main() {
 	rmAddObjectDefConstraint(randomTree2ID, shortAvoidOasis);
 	rmAddObjectDefConstraint(randomTree2ID, avoidStartingSettlement);
 	rmAddObjectDefConstraint(randomTree2ID, avoidSettlement);
+	
+	// Relics.
+	int relicID = rmCreateObjectDef("relic");
+	rmAddObjectDefItem(relicID, "Relic", 1, 0.0);
+	rmAddObjectDefConstraint(relicID, avoidAll);
+	rmAddObjectDefConstraint(relicID, avoidEdge);
+	rmAddObjectDefConstraint(relicID, shortAvoidOasis);
+	rmAddObjectDefConstraint(relicID, createClassDistConstraint(classStartingSettlement, 80.0));
+	rmAddObjectDefConstraint(relicID, avoidRelic);
 
 	progress(0.1);
 
@@ -518,7 +518,7 @@ void main() {
 	// Close settlement.
 	addFairLocConstraint(farAvoidOasis);
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		addFairLocConstraint(avoidCorner);
 	} else {
 		addFairLocConstraint(avoidTowerLOS);
@@ -533,7 +533,7 @@ void main() {
 
 	enableFairLocTwoPlayerCheck();
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		addFairLoc(80.0, 110.0, true, false, 80.0, 16.0, 16.0);
 	} else if(cNonGaiaPlayers < 5) {
 		addFairLoc(80.0, 100.0, true, false, 75.0, 16.0, 16.0);
@@ -541,7 +541,7 @@ void main() {
 		addFairLoc(70.0, 100.0, true, randChance(0.25), 75.0, 16.0, 16.0);
 	}
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		setFairLocInterDistMin(100.0);
 	}
 
@@ -590,7 +590,7 @@ void main() {
 	float centerDist = 20.0;
 
 	// Adjust for teamgames so we don't get the center full of stuff.
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		centerDist = rmXFractionToMeters(0.175);
 	}
 
@@ -642,7 +642,7 @@ void main() {
 
 	progress(0.9);
 
-	// Relics (non mirrored).
+	// Relics (non-mirrored).
 	placeObjectInPlayerSplits(relicID);
 
 	// Random trees.

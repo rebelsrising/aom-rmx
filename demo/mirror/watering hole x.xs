@@ -1,7 +1,7 @@
 /*
 ** WATERING HOLE MIRROR
 ** RebelsRising
-** Last edit: 09/03/2021
+** Last edit: 14/05/2022
 */
 
 include "rmx.xs";
@@ -24,14 +24,14 @@ void main() {
 	}
 
 	// Set size.
-	int mapSize = getStandardMapDimInMeters(9450);
+	int axisLength = getStandardMapDimInMeters(9450);
 
 	// Initialize water.
 	rmSetSeaLevel(1.0);
 	rmSetSeaType("Savannah Water Hole");
 
 	// Initialize map.
-	initializeMap("Water", mapSize);
+	initializeMap("Water", axisLength);
 
 	// Place players.
 	if(cNonGaiaPlayers < 9) {
@@ -65,7 +65,7 @@ void main() {
 	int avoidConnection = createClassDistConstraint(classConnection, 1.0);
 	int shortAvoidIsland = createClassDistConstraint(classIsland, 20.0);
 	int avoidPlayerCore = createClassDistConstraint(classPlayerCore, 0.1);
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		avoidPlayerCore = createClassDistConstraint(classPlayerCore, 70.0);
 	}
 
@@ -267,7 +267,7 @@ void main() {
 	rmAddObjectDefConstraint(bonusHunt2ID, avoidEdge);
 	// rmAddObjectDefConstraint(bonusHunt2ID, avoidCenter);
 	rmAddObjectDefConstraint(bonusHunt2ID, farAvoidPlayer);
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		rmAddObjectDefConstraint(bonusHunt2ID, nearShore);
 	}
 	rmAddObjectDefConstraint(bonusHunt2ID, avoidFood);
@@ -368,25 +368,25 @@ void main() {
 	progress(0.1);
 
 	// Define player connections.
-	int shallowsID = rmCreateConnection("shallows");
-	if(cNonGaiaPlayers < 3) {
-		rmSetConnectionType(shallowsID, cConnectAreas, false);
+	int playerConnectionID = rmCreateConnection("player connection");
+	if(gameIs1v1()) {
+		rmSetConnectionType(playerConnectionID, cConnectAreas, false);
 	} else {
-		rmSetConnectionType(shallowsID, cConnectAllies, false);
+		rmSetConnectionType(playerConnectionID, cConnectAllies, false);
 	}
-	rmSetConnectionWidth(shallowsID, rmRandFloat(25.0, 40.0), 0);
-	rmAddConnectionTerrainReplacement(shallowsID, "RiverSandyA", "SavannahC");
-	rmSetConnectionCoherence(shallowsID, 1.0);
-	rmSetConnectionBaseHeight(shallowsID, 2.0);
-	rmSetConnectionHeightBlend(shallowsID, 2);
-	rmSetConnectionSmoothDistance(shallowsID, 3);
-	rmAddConnectionToClass(shallowsID, classConnection);
-	rmSetConnectionWarnFailure(shallowsID, false);
+	rmSetConnectionWidth(playerConnectionID, rmRandFloat(25.0, 40.0), 0);
+	rmAddConnectionTerrainReplacement(playerConnectionID, "RiverSandyA", "SavannahC");
+	rmSetConnectionCoherence(playerConnectionID, 1.0);
+	rmSetConnectionBaseHeight(playerConnectionID, 2.0);
+	rmSetConnectionHeightBlend(playerConnectionID, 2);
+	rmSetConnectionSmoothDistance(playerConnectionID, 3);
+	rmAddConnectionToClass(playerConnectionID, classConnection);
+	rmSetConnectionWarnFailure(playerConnectionID, false);
 
 	// Set up fake player areas.
 	for(i = 1; < cPlayers) {
 		int fakePlayerAreaID = rmCreateArea("fake player area " + i);
-		if(cNonGaiaPlayers < 3) {
+		if(gameIs1v1()) {
 			rmSetAreaSize(fakePlayerAreaID, rmAreaTilesToFraction(3000));
 		} else {
 			rmSetAreaSize(fakePlayerAreaID, rmAreaTilesToFraction(200));
@@ -407,7 +407,7 @@ void main() {
 
 	float islandEdgeDist = rmXTilesToFraction(20);
 
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		islandEdgeDist = rmXTilesToFraction(30);
 		numBonusIsland = 0;
 	}
@@ -449,7 +449,7 @@ void main() {
 		rmBuildArea(bonusIslandID);
 	}
 
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		bonusIslandID = rmCreateArea("center bonus island");
 		rmSetAreaSize(bonusIslandID, rmAreaTilesToFraction(3500 * cNonGaiaPlayers));
 		rmSetAreaLocation(bonusIslandID, 0.5, 0.5);
@@ -462,7 +462,7 @@ void main() {
 		rmAddAreaToClass(bonusIslandID, classIsland);
 		rmAddAreaConstraint(bonusIslandID, avoidPlayerCore);
 		rmAddAreaConstraint(bonusIslandID, islandAvoidEdge);
-		rmAddConnectionArea(shallowsID, bonusIslandID);
+		rmAddConnectionArea(playerConnectionID, bonusIslandID);
 		rmSetAreaWarnFailure(bonusIslandID, false);
 		rmBuildArea(bonusIslandID);
 	}
@@ -482,12 +482,12 @@ void main() {
 		rmAddAreaToClass(playerAreaID, classPlayer);
 		rmAddAreaConstraint(playerAreaID, shortAvoidIsland);
 		rmAddAreaConstraint(playerAreaID, farAvoidPlayer);
-		rmAddConnectionArea(shallowsID, playerAreaID);
+		rmAddConnectionArea(playerConnectionID, playerAreaID);
 		rmSetAreaWarnFailure(playerAreaID, false);
 	}
 
 	rmBuildAllAreas();
-	rmBuildConnection(shallowsID);
+	rmBuildConnection(playerConnectionID);
 
 	// Rebuild center.
 	int fakeCenterID = rmCreateArea("fake center");
@@ -503,7 +503,7 @@ void main() {
 	// Center pond.
 	int classPond = initAreaClass();
 
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		setAreaWaterType("Savannah Water Hole", 15.0, 6.0);
 
 		setAreaBlobs(10 * cNonGaiaPlayers / 2);
@@ -519,7 +519,7 @@ void main() {
 	int connectionAvoidPond = createClassDistConstraint(classPond, 10.0);
 	int numConnections = 2;
 
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		numConnections = getNumberPlayersOnTeam(0);
 	}
 
@@ -537,7 +537,7 @@ void main() {
 		// Create random connection.
 		int numAreas = 100;
 
-		float offset = rmRandFloat(0.25, 0.75) * PI;
+		float offset = rmRandFloat(0.25, 0.4) * PI;
 
 		// Offset variation.
 		if(randChance()) {
@@ -548,7 +548,7 @@ void main() {
 		float b = getTeamAngle(1) + offset;
 		float r = 0.5;
 
-		if(cNonGaiaPlayers > 2) {
+		if(gameIs1v1() == false) {
 			a = getPlayerAngle(n);
 			b = a + PI;
 		}
@@ -563,7 +563,7 @@ void main() {
 
 		for(i = 0; < numAreas) {
 			int bonusConnectionID = rmCreateArea("random connection " + n + " " + i);
-			if(cNonGaiaPlayers < 3) {
+			if(gameIs1v1()) {
 				rmSetAreaSize(bonusConnectionID, rmRandFloat(0.005, 0.0075));
 			} else {
 				rmSetAreaSize(bonusConnectionID, rmXMetersToFraction(rmRandFloat(1.9, 2.1)));
@@ -779,7 +779,7 @@ void main() {
 	rmSetAreaCoherence(centerForestID, 1.0);
 	rmBuildArea(centerForestID);
 
-	// Relics (non mirrored).
+	// Relics (non-mirrored).
 	placeObjectInPlayerSplits(relicID);
 
 	// Random trees.

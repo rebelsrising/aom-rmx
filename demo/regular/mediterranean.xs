@@ -188,7 +188,7 @@ void main() {
 
 	// Create mediterranean sea.
 	int seaID = rmCreateArea("sea");
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		rmSetAreaSize(seaID, 0.3);
 	} else if(cNonGaiaPlayers < 5) {
 		rmSetAreaSize(seaID, 0.325);
@@ -209,7 +209,7 @@ void main() {
 	rmBuildArea(seaID);
 
 	// Create bonus island.
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		int bonusIslandID = rmCreateArea("bonus island");
 		rmSetAreaSize(bonusIslandID, rmAreaTilesToFraction(300));
 		rmSetAreaLocation(bonusIslandID, 0.5, 0.5);
@@ -233,7 +233,7 @@ void main() {
 
 	for(i = 1; < cPlayers) {
 		int playerAreaID = rmCreateArea("player area " + i);
-		if(cNonGaiaPlayers < 3) {
+		if(gameIs1v1()) {
 			rmSetAreaSize(playerAreaID, 0.8 * playerAreaSize);
 		} else {
 			rmSetAreaSize(playerAreaID, 1.125 * playerAreaSize, 1.25 * playerAreaSize);
@@ -312,7 +312,7 @@ void main() {
 	int closeTCFairLoc = 2;
 	int farTCFairLoc = 1;
 
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		closeTCFairLoc = 1;
 		farTCFairLoc = 2;
 	}
@@ -339,7 +339,7 @@ void main() {
 			}
 		}
 
-		if(cNonGaiaPlayers < 3) {
+		if(gameIs1v1()) {
 			enableFairLocTwoPlayerCheck(0.15, farTCFairLoc);
 
 			// Two additional variations for 1v1 (both settlements on the same side).
@@ -369,7 +369,7 @@ void main() {
 		}
 
 		// Close settlement.
-		if(cNonGaiaPlayers < 3) {
+		if(gameIs1v1()) {
 			enableFairLocTwoPlayerCheck();
 
 			// For 1v1, force close settlement away from water.
@@ -383,7 +383,7 @@ void main() {
 			addFairLocConstraint(shortAvoidImpassableLand, closeTCFairLoc);
 		}
 
-		if(cNonGaiaPlayers < 3) {
+		if(gameIs1v1()) {
 			addFairLoc(60.0, 80.0, false, true, 65.0, 12.0, 12.0, false, false, false, true, closeTCFairLoc);
 		} else {
 			// Be less strict for close settlements because it doesn't matter all too much as long as they aren't right on top of each other.
@@ -467,13 +467,13 @@ void main() {
 	// Bonus gold (anywhere in player area).
 	int numBonusGold = rmRandInt(1, 2);
 
-	if(cNonGaiaPlayers > 2) {
+	if(gameIs1v1() == false) {
 		numBonusGold = 1;
 	}
 
 	int bonusGoldID = createObjectDefVerify("bonus gold");
 	addObjectDefItemVerify(bonusGoldID, "Gold Mine", 1, 0.0);
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		// This constraint is ridiculous for teamgames.
 		rmAddObjectDefConstraint(bonusGoldID, createClassDistConstraint(classStartingSettlement, 90.0));
 	}
@@ -577,7 +577,7 @@ void main() {
 	float farHuntMinDist = rmRandFloat(70.0, 100.0);
 	float farHuntMaxDist = farHuntMinDist + 10.0;
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		// Only constrain this is for 1v1.
 		rmAddObjectDefConstraint(farHuntID, createClassDistConstraint(classStartingSettlement, 70.0));
 		rmAddObjectDefConstraint(farHuntID, shortAvoidSettlement);
@@ -738,7 +738,7 @@ void main() {
 	} else if(cNonGaiaPlayers > 4) {
 		fishDist = 72.5;
 		avoidPlayerFish = createTypeDistConstraint("Fish", 20.0);
-	} else if(cNonGaiaPlayers > 2) {
+	} else if(gameIs1v1() == false) {
 		fishDist = 77.5;
 	}
 
@@ -796,14 +796,14 @@ void main() {
 	// Consider verifying this for 1v1.
 	int fishID = rmCreateObjectDef("fish");
 	rmAddObjectDefItem(fishID, "Fish - Perch", 2, 9.0);
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		setObjectDefDistanceToMax(fishID);
 	} else {
 		setObjectDefDistance(fishID, 7.5 * cNonGaiaPlayers, rmXFractionToMeters(0.5));
 	}
 	rmAddObjectDefConstraint(fishID, fishLandMin);
 	rmAddObjectDefConstraint(fishID, avoidFish);
-	if(cNonGaiaPlayers < 3) { // 1v1.
+	if(gameIs1v1()) { // 1v1.
 		rmPlaceObjectDefAtLoc(fishID, 0, 0.5, 0.5, 4 * cNonGaiaPlayers);
 	} else if(cNonGaiaPlayers == 6) { // 3v3 (or anything with 6 players really).
 		rmPlaceObjectDefAtLoc(fishID, 0, 0.5, 0.5, 3 * cNonGaiaPlayers + (cNonGaiaPlayers / 2) + ((cNonGaiaPlayers / 2) % 2));

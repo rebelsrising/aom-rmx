@@ -1,7 +1,7 @@
 /*
 ** GHOST LAKE MIRROR
 ** RebelsRising
-** Last edit: 09/03/2021
+** Last edit: 14/05/2022
 */
 
 include "rmx.xs";
@@ -24,10 +24,10 @@ void main() {
 	}
 
 	// Set size.
-	int mapSize = getStandardMapDimInMeters();
+	int axisLength = getStandardMapDimInMeters();
 
 	// Initialize map.
-	initializeMap("SnowB", mapSize);
+	initializeMap("SnowB", axisLength);
 
 	// Set lighting.
 	rmSetLightingSet("Ghost Lake X");
@@ -387,7 +387,7 @@ void main() {
 	addFairLocConstraint(avoidTowerLOS);
 	addFairLocConstraint(farAvoidCenter);
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		addFairLoc(70.0, 120.0, true, false, 65.0, 12.0, 12.0);
 	} else {
 		addFairLocConstraint(createClassDistConstraint(classStartingSettlement, 50.0));
@@ -397,7 +397,7 @@ void main() {
 	// Close settlement.
 	addFairLocConstraint(farAvoidCenter);
 
-	if(cNonGaiaPlayers < 3) {
+	if(gameIs1v1()) {
 		addFairLocConstraint(avoidCorner);
 		addFairLoc(60.0, 80.0, false, true, 65.0, 12.0, 12.0);
 	} else {
@@ -507,7 +507,7 @@ void main() {
 
 	progress(0.9);
 
-	// Relics (non mirrored).
+	// Relics (non-mirrored).
 	placeObjectInPlayerSplits(relicID);
 
 	// Random trees.
